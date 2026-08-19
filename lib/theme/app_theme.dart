@@ -17,7 +17,7 @@ class AppTheme {
   static const Color cardLight = Colors.white;
   static const Color textDark = Color(0xFF211713);
   static const Color textMutedLight = Color(0xFF85746E);
-  static const Color borderLight = Color(0xFFE6DFDB);
+  static const Color borderLight = Color(0xFFE8E2DE);
   static const Color mutedLight = Color(0xFFF0ECE9);
   static const Color secondaryLight = Color(0xFFF3ECE6);
 
@@ -27,7 +27,7 @@ class AppTheme {
   static const Color cardDark = Color(0xFF231E1B);
   static const Color textLight = Color(0xFFF2F2F2);
   static const Color textMutedDark = Color(0xFF9B8E88);
-  static const Color borderDark = Color(0xFF3E3530);
+  static const Color borderDark = Color(0xFF382F2B);
   static const Color mutedDark = Color(0xFF312A26);
   static const Color secondaryDark = Color(0xFF3B332E);
 
@@ -44,6 +44,8 @@ class AppTheme {
       brightness: Brightness.light,
       primaryColor: primaryColor,
       scaffoldBackgroundColor: bgLight,
+      cardColor: cardLight,
+      dividerColor: borderLight,
       colorScheme: const ColorScheme.light(
         primary: primaryColor,
         onPrimary: Colors.white,
@@ -55,6 +57,8 @@ class AppTheme {
         onSurface: textDark,
         error: dangerColor,
         onError: Colors.white,
+        outline: borderLight,
+        outlineVariant: borderLight,
       ),
       textTheme: baseTextTheme.apply(
         bodyColor: textDark,
@@ -155,6 +159,8 @@ class AppTheme {
       brightness: Brightness.dark,
       primaryColor: primaryDark,
       scaffoldBackgroundColor: bgDark,
+      cardColor: cardDark,
+      dividerColor: borderDark,
       colorScheme: const ColorScheme.dark(
         primary: primaryDark,
         onPrimary: Colors.white,
@@ -166,6 +172,8 @@ class AppTheme {
         onSurface: textLight,
         error: dangerColor,
         onError: Colors.white,
+        outline: borderDark,
+        outlineVariant: borderDark,
       ),
       textTheme: baseTextTheme.apply(
         bodyColor: textLight,
