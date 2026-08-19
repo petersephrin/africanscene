@@ -331,10 +331,28 @@ class _AdminLayoutState extends State<AdminLayout> {
               ),
             ),
 
+          // Section Header: MENU
+          if (!isCollapsed)
+            Padding(
+              padding: const EdgeInsets.only(left: 16, top: 16, bottom: 6),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'MENU',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.2,
+                    color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.7),
+                  ),
+                ),
+              ),
+            ),
+
           // Navigation Links
           Expanded(
             child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               itemCount: _navItems.length,
               separatorBuilder: (_, __) => const SizedBox(height: 2),
               itemBuilder: (context, index) {
