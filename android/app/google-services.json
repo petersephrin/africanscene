@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "771962223357",
+    "project_id": "african-scene",
+    "storage_bucket": "african-scene.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:771962223357:android:d0f75d75a24f0ede761c94",
+        "android_client_info": {
+          "package_name": "com.example.africanscene"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCzYlLNWg1Sh9Ra10aeJDuBZymzJQWp2Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
