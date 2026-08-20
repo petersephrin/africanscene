@@ -63,6 +63,26 @@ class NotificationModel {
     };
   }
 
+  Map<String, dynamic> toLocalJson() {
+    return {
+      'id': id,
+      '_id': id,
+      'user_id': userId,
+      'userId': userId,
+      'title': title,
+      'message': message,
+      'type': type,
+      'read': read,
+      'related_record_id': relatedRecordId,
+      'relatedRecordId': relatedRecordId,
+      'related_school_id': relatedSchoolId,
+      'relatedSchoolId': relatedSchoolId,
+      'createdAt': createdAt?.toIso8601String(),
+    };
+  }
+
+  Map<String, dynamic> toJson() => toLocalJson();
+
   NotificationModel copyWith({
     String? title,
     String? message,

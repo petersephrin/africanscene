@@ -85,6 +85,27 @@ class SchoolModel {
     };
   }
 
+  Map<String, dynamic> toLocalJson() {
+    return {
+      'id': id,
+      '_id': id,
+      'name': name,
+      'location': location,
+      'type': type,
+      'students': students,
+      'motto': motto,
+      'principal': principal,
+      'phone': phone,
+      'email': email,
+      'established': established,
+      'description': description,
+      'createdAt': createdAt?.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
+    };
+  }
+
+  Map<String, dynamic> toJson() => toLocalJson();
+
   SchoolModel copyWith({
     String? name,
     String? location,

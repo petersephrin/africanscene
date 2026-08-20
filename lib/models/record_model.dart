@@ -88,6 +88,19 @@ class RecordModel {
     };
   }
 
+  static dynamic _sanitizeForJson(dynamic val) {
+    if (val == null) return null;
+    if (val is Timestamp) return val.toDate().toIso8601String();
+    if (val is DateTime) return val.toIso8601String();
+    if (val is Map) {
+      return val.map((k, v) => MapEntry(k.toString(), _sanitizeForJson(v)));
+    }
+    if (val is List) {
+      return val.map((e) => _sanitizeForJson(e)).toList();
+    }
+    return val;
+  }
+
   Map<String, dynamic> toLocalJson() {
     return {
       'id': id,
@@ -99,15 +112,20 @@ class RecordModel {
       'submitted_by': submittedBy,
       'submittedBy': submittedBy,
       'submittedById': submittedById,
-      'data': data,
+      'data': _sanitizeForJson(data) is Map ? _sanitizeForJson(data) : {},
       'synced': synced,
-      'form_fields_snapshot': formFieldsSnapshot,
+      'form_fields_snapshot': (_sanitizeForJson(formFieldsSnapshot) as List?)
+              ?.map((e) => Map<String, dynamic>.from(e as Map))
+              .toList() ??
+          [],
       'version_number': versionNumber,
       'createdAt': createdAt?.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
       '_offline': isOffline,
     };
   }
+
+  Map<String, dynamic> toJson() => toLocalJson();
 
   RecordModel copyWith({
     String? id,
@@ -219,4 +237,30 @@ class RecordVersionModel {
       'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : FieldValue.serverTimestamp(),
     };
   }
+
+  Map<String, dynamic> toLocalJson() {
+    return {
+      'id': id,
+      '_id': id,
+      'record_id': recordId,
+      'recordId': recordId,
+      'school_id': schoolId,
+      'schoolId': schoolId,
+      'form_type': formType.toDbString(),
+      'formType': formType.toDbString(),
+      'data': RecordModel._sanitizeForJson(data) is Map ? RecordModel._sanitizeForJson(data) : {},
+      'form_fields_snapshot': (RecordModel._sanitizeForJson(formFieldsSnapshot) as List?)
+              ?.map((e) => Map<String, dynamic>.from(e as Map))
+              .toList() ??
+          [],
+      'edited_by': editedBy,
+      'editedBy': editedBy,
+      'edit_reason': editReason,
+      'editReason': editReason,
+      'version_number': versionNumber,
+      'createdAt': createdAt?.toIso8601String(),
+    };
+  }
+
+  Map<String, dynamic> toJson() => toLocalJson();
 }

@@ -111,6 +111,30 @@ class DeletionRequestModel {
     };
   }
 
+  Map<String, dynamic> toLocalJson() {
+    return {
+      'id': id,
+      '_id': id,
+      'record_id': recordId,
+      'recordId': recordId,
+      'requested_by': requestedBy,
+      'requestedBy': requestedBy,
+      'requester_name': requesterName,
+      'requesterName': requesterName,
+      'reason': reason,
+      'status': status.toDbString(),
+      'reviewed_by': reviewedBy,
+      'reviewedBy': reviewedBy,
+      'reviewer_name': reviewerName,
+      'reviewerName': reviewerName,
+      'reviewed_at': reviewedAt?.toIso8601String(),
+      'createdAt': createdAt?.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
+    };
+  }
+
+  Map<String, dynamic> toJson() => toLocalJson();
+
   DeletionRequestModel copyWith({
     String? recordId,
     String? requestedBy,

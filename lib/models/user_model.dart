@@ -163,6 +163,32 @@ class UserModel {
     };
   }
 
+  Map<String, dynamic> toLocalJson() {
+    return {
+      'id': id,
+      '_id': id,
+      'email': email,
+      'first_name': firstName,
+      'firstName': firstName,
+      'last_name': lastName,
+      'lastName': lastName,
+      'name': name,
+      'phone': phone,
+      'role': role.toDbString(),
+      'user_type': userType,
+      'userType': userType,
+      'status': status,
+      'department': department,
+      'specialization': specialization,
+      'schoolIds': schoolIds,
+      'school_ids': schoolIds,
+      'createdAt': createdAt?.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
+    };
+  }
+
+  Map<String, dynamic> toJson() => toLocalJson();
+
   UserModel copyWith({
     String? email,
     String? firstName,

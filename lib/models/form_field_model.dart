@@ -204,6 +204,31 @@ class FormFieldModel {
     };
   }
 
+  Map<String, dynamic> toLocalJson() {
+    return {
+      'id': id,
+      '_id': id,
+      'form_type': formType.toDbString(),
+      'formType': formType.toDbString(),
+      'label': label,
+      'field_type': fieldType.toDbString(),
+      'fieldType': fieldType.toDbString(),
+      'required': required,
+      'placeholder': placeholder,
+      'options': options,
+      'field_order': fieldOrder,
+      'fieldOrder': fieldOrder,
+      'min_value': minValue,
+      'minValue': minValue,
+      'max_value': maxValue,
+      'maxValue': maxValue,
+      'createdAt': createdAt?.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
+    };
+  }
+
+  Map<String, dynamic> toJson() => toLocalJson();
+
   FormFieldModel copyWith({
     FormType? formType,
     String? label,

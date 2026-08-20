@@ -154,7 +154,7 @@ class SchoolProvider extends ChangeNotifier {
       if (fetchedSchools.isNotEmpty) {
         _schools = fetchedSchools;
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(_lsSchools, jsonEncode(_schools.map((s) => s.toMap()).toList()));
+        await prefs.setString(_lsSchools, jsonEncode(_schools.map((s) => s.toLocalJson()).toList()));
 
         if (_activeSchool == null || !_schools.any((s) => s.id == _activeSchool!.id)) {
           _activeSchool = _schools.first;
@@ -384,7 +384,7 @@ class SchoolProvider extends ChangeNotifier {
 
   Future<void> _cacheFormFields(List<FormFieldModel> fields) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_lsFields, jsonEncode(fields.map((f) => f.toMap()).toList()));
+    await prefs.setString(_lsFields, jsonEncode(fields.map((f) => f.toLocalJson()).toList()));
   }
 
   Future<void> _saveToLocalStorage() async {

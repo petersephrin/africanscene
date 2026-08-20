@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:excel/excel.dart';
 import 'package:universal_html/html.dart' as html;
 
@@ -68,7 +69,11 @@ class ExportService {
     required String filename,
     required dynamic jsonData,
   }) async {
-    final jsonString = const JsonEncoder.withIndent('  ').convert(jsonData);
+    final jsonString = JsonEncoder.withIndent('  ', (object) {
+      if (object is Timestamp) return object.toDate().toIso8601String();
+      if (object is DateTime) return object.toIso8601String();
+      return object.toString();
+    }).convert(jsonData);
     final bytes = utf8.encode(jsonString);
 
     _triggerDownload(
