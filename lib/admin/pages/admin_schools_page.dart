@@ -833,7 +833,7 @@ class _AdminSchoolsPageState extends State<AdminSchoolsPage> {
                   onPressed: () => _showAddEditSchoolDialog(),
                   icon: const Icon(Icons.add, size: 18),
                   label: const Text(
-                    '+ Add School',
+                    'Add School',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
