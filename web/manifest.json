@@ -1,11 +1,11 @@
 {
-    "name": "African Scene",
-    "short_name": "African Scene",
+    "name": "AfricanSCENe",
+    "short_name": "AfricanSCENe",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#FFFFFF",
-    "theme_color": "#173156",
-    "description": "African Scene - African Film & Media Platform",
+    "background_color": "#1a1f3c",
+    "theme_color": "#1e3a5f",
+    "description": "Sustainable Community Energy Networks – School Record Tracking App",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
