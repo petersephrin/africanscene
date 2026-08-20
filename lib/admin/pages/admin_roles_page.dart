@@ -29,14 +29,15 @@ class AdminRolesPage extends StatelessWidget {
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     initialValue: UserRole.fromString(selectedRole).toDbString(),
+                    isExpanded: true,
                     decoration: const InputDecoration(labelText: 'Assigned System Role *'),
                     items: const [
-                      DropdownMenuItem(value: 'super_admin', child: Text('Super Administrator (Full System Access)')),
-                      DropdownMenuItem(value: 'admin', child: Text('Administrator')),
-                      DropdownMenuItem(value: 'staff_admin', child: Text('Staff Administrator')),
-                      DropdownMenuItem(value: 'staff', child: Text('Operations Staff')),
-                      DropdownMenuItem(value: 'researcher', child: Text('Field Researcher')),
-                      DropdownMenuItem(value: 'teacher', child: Text('Institutional Teacher')),
+                      DropdownMenuItem(value: 'super_admin', child: Text('Super Administrator (Full System Access)', overflow: TextOverflow.ellipsis)),
+                      DropdownMenuItem(value: 'admin', child: Text('Administrator', overflow: TextOverflow.ellipsis)),
+                      DropdownMenuItem(value: 'staff_admin', child: Text('Staff Administrator', overflow: TextOverflow.ellipsis)),
+                      DropdownMenuItem(value: 'staff', child: Text('Operations Staff', overflow: TextOverflow.ellipsis)),
+                      DropdownMenuItem(value: 'researcher', child: Text('Field Researcher', overflow: TextOverflow.ellipsis)),
+                      DropdownMenuItem(value: 'teacher', child: Text('Institutional Teacher', overflow: TextOverflow.ellipsis)),
                     ],
                     onChanged: (val) => setDialogState(() => selectedRole = val ?? selectedRole),
                   ),
@@ -105,11 +106,16 @@ class AdminRolesPage extends StatelessWidget {
                   const SizedBox(height: 6),
                   DropdownButtonFormField<UserModel>(
                     value: selectedUser,
+                    isExpanded: true,
                     decoration: const InputDecoration(),
                     items: allUsers.map((u) {
                       return DropdownMenuItem(
                         value: u,
-                        child: Text('${u.name} (${u.email}) - [${u.role.displayName}]', style: const TextStyle(fontSize: 13)),
+                        child: Text(
+                          '${u.name.isNotEmpty ? u.name : "User"} (${u.email}) - [${u.role.displayName}]',
+                          style: const TextStyle(fontSize: 13),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       );
                     }).toList(),
                     onChanged: (val) => setDialogState(() => selectedUser = val ?? selectedUser),
@@ -119,14 +125,15 @@ class AdminRolesPage extends StatelessWidget {
                   const SizedBox(height: 6),
                   DropdownButtonFormField<String>(
                     value: targetRole,
+                    isExpanded: true,
                     decoration: const InputDecoration(),
                     items: const [
-                      DropdownMenuItem(value: 'super_admin', child: Text('Super Administrator (Full System Access)')),
-                      DropdownMenuItem(value: 'admin', child: Text('Administrator')),
-                      DropdownMenuItem(value: 'staff_admin', child: Text('Staff Administrator')),
-                      DropdownMenuItem(value: 'staff', child: Text('Operations Staff')),
-                      DropdownMenuItem(value: 'researcher', child: Text('Field Researcher')),
-                      DropdownMenuItem(value: 'teacher', child: Text('Institutional Teacher')),
+                      DropdownMenuItem(value: 'super_admin', child: Text('Super Administrator (Full System Access)', overflow: TextOverflow.ellipsis)),
+                      DropdownMenuItem(value: 'admin', child: Text('Administrator', overflow: TextOverflow.ellipsis)),
+                      DropdownMenuItem(value: 'staff_admin', child: Text('Staff Administrator', overflow: TextOverflow.ellipsis)),
+                      DropdownMenuItem(value: 'staff', child: Text('Operations Staff', overflow: TextOverflow.ellipsis)),
+                      DropdownMenuItem(value: 'researcher', child: Text('Field Researcher', overflow: TextOverflow.ellipsis)),
+                      DropdownMenuItem(value: 'teacher', child: Text('Institutional Teacher', overflow: TextOverflow.ellipsis)),
                     ],
                     onChanged: (val) => setDialogState(() => targetRole = val ?? targetRole),
                   ),
@@ -223,24 +230,79 @@ class AdminRolesPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Header Bar with Quick Action
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isCompact = constraints.maxWidth < 620;
+                if (isCompact) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Role Permissions & Assignments',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Manage global permissions and promote accounts across the platform',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).textTheme.bodySmall?.color,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ElevatedButton.icon(
+                        onPressed: () => _showGlobalUserRolePicker(context, users),
+                        icon: const Icon(Icons.person_add_alt_1, size: 18),
+                        label: const Text('Change User Role'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryColor,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const Text('Role Permissions & Assignments', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 2),
-                    Text('Manage global permissions and promote accounts across the platform', style: TextStyle(fontSize: 12, color: Theme.of(context).textTheme.bodySmall?.color)),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Role Permissions & Assignments',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Manage global permissions and promote accounts across the platform',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context).textTheme.bodySmall?.color,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    ElevatedButton.icon(
+                      onPressed: () => _showGlobalUserRolePicker(context, users),
+                      icon: const Icon(Icons.person_add_alt_1, size: 18),
+                      label: const Text('Change User Role'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
                   ],
-                ),
-                ElevatedButton.icon(
-                  onPressed: () => _showGlobalUserRolePicker(context, users),
-                  icon: const Icon(Icons.person_add_alt_1, size: 18),
-                  label: const Text('Change User Role'),
-                  style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryColor),
-                ),
-              ],
+                );
+              },
             ),
             const SizedBox(height: 20),
 
@@ -268,10 +330,14 @@ class AdminRolesPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 12,
+                        runSpacing: 10,
                         children: [
                           Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               Container(
                                 padding: const EdgeInsets.all(10),
@@ -360,10 +426,16 @@ class AdminRolesPage extends StatelessWidget {
                       ...permissions.map((p) => Padding(
                             padding: const EdgeInsets.symmetric(vertical: 2),
                             child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(Icons.check_circle, size: 14, color: color),
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 2),
+                                  child: Icon(Icons.check_circle, size: 14, color: color),
+                                ),
                                 const SizedBox(width: 6),
-                                Text(p, style: const TextStyle(fontSize: 12)),
+                                Expanded(
+                                  child: Text(p, style: const TextStyle(fontSize: 12)),
+                                ),
                               ],
                             ),
                           )),

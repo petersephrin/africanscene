@@ -7,7 +7,6 @@ import '../../providers/auth_provider.dart';
 import '../../models/form_field_model.dart';
 import '../../models/record_model.dart';
 import '../../models/user_model.dart';
-import '../../models/school_model.dart';
 import '../../theme/app_theme.dart';
 
 class AdminDashboardPage extends StatefulWidget {

@@ -535,83 +535,170 @@ class _AdminFormFieldsPageState extends State<AdminFormFieldsPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // 1. Header Section: Title, Subtitle, Online Badge, and "Add Field" Button
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Form Fields',
-                      style: GoogleFonts.poppins(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? AppTheme.textLight : AppTheme.textDark,
-                        letterSpacing: -0.3,
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isCompact = constraints.maxWidth < 620;
+                if (isCompact) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Form Fields',
+                        style: GoogleFonts.poppins(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? AppTheme.textLight : AppTheme.textDark,
+                          letterSpacing: -0.3,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Manage fields for each record type',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isDark ? AppTheme.textMutedDark : AppTheme.textMutedLight,
+                      const SizedBox(height: 2),
+                      Text(
+                        'Manage fields for each record type',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isDark ? AppTheme.textMutedDark : AppTheme.textMutedLight,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    // Online Badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF38251E) : const Color(0xFFFDEEE7),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
+                      const SizedBox(height: 14),
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 10,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          Icon(Icons.wifi_rounded, size: 13, color: AppTheme.primaryColor),
-                          SizedBox(width: 5),
+                          // Online Badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF38251E) : const Color(0xFFFDEEE7),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.wifi_rounded, size: 13, color: AppTheme.primaryColor),
+                                SizedBox(width: 5),
+                                Text(
+                                  'Online',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Add Field Button
+                          ElevatedButton.icon(
+                            onPressed: () => _showAddEditFieldDialog(),
+                            icon: const Icon(Icons.add, size: 18),
+                            label: const Text(
+                              'Add Field',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryColor,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                }
+
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            'Online',
+                            'Form Fields',
+                            style: GoogleFonts.poppins(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? AppTheme.textLight : AppTheme.textDark,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Manage fields for each record type',
                             style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.primaryColor,
+                              fontSize: 14,
+                              color: isDark ? AppTheme.textMutedDark : AppTheme.textMutedLight,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 16),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Online Badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF38251E) : const Color(0xFFFDEEE7),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.wifi_rounded, size: 13, color: AppTheme.primaryColor),
+                              SizedBox(width: 5),
+                              Text(
+                                'Online',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.primaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
 
-                    // Add Field Button
-                    ElevatedButton.icon(
-                      onPressed: () => _showAddEditFieldDialog(),
-                      icon: const Icon(Icons.add, size: 18),
-                      label: const Text(
-                        'Add Field',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
+                        // Add Field Button
+                        ElevatedButton.icon(
+                          onPressed: () => _showAddEditFieldDialog(),
+                          icon: const Icon(Icons.add, size: 18),
+                          label: const Text(
+                            'Add Field',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryColor,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
                         ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryColor,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
+                      ],
                     ),
                   ],
-                ),
-              ],
+                );
+              },
             ),
 
             const SizedBox(height: 20),
@@ -619,75 +706,78 @@ class _AdminFormFieldsPageState extends State<AdminFormFieldsPage> {
             // 2. Tabs Segmented Control
             Align(
               alignment: Alignment.centerLeft,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: isDark ? AppTheme.mutedDark : const Color(0xFFF0ECE9),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: _formTypes.map((type) {
-                    final isActive = _activeTab == type;
-                    final count = adminData.getFieldsByType(type).length;
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppTheme.mutedDark : const Color(0xFFF0ECE9),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: _formTypes.map((type) {
+                      final isActive = _activeTab == type;
+                      final count = adminData.getFieldsByType(type).length;
 
-                    return InkWell(
-                      onTap: () => setState(() => _activeTab = type),
-                      borderRadius: BorderRadius.circular(8),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 150),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: isActive ? Theme.of(context).cardColor : Colors.transparent,
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: isActive
-                              ? [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.04),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 1),
-                                  ),
-                                ]
-                              : [],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              type.displayName,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                                color: isActive
-                                    ? (isDark ? AppTheme.textLight : AppTheme.textDark)
-                                    : (isDark ? AppTheme.textMutedDark : AppTheme.textMutedLight),
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: isActive
-                                    ? (isDark ? const Color(0xFF38251E) : const Color(0xFFFDEEE7))
-                                    : (isDark ? const Color(0xFF231E1B) : const Color(0xFFE8E2DE)),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(
-                                '$count',
+                      return InkWell(
+                        onTap: () => setState(() => _activeTab = type),
+                        borderRadius: BorderRadius.circular(8),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isActive ? Theme.of(context).cardColor : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: isActive
+                                ? [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.04),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 1),
+                                    ),
+                                  ]
+                                : [],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                type.displayName,
                                 style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
                                   color: isActive
-                                      ? AppTheme.primaryColor
+                                      ? (isDark ? AppTheme.textLight : AppTheme.textDark)
                                       : (isDark ? AppTheme.textMutedDark : AppTheme.textMutedLight),
                                 ),
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: isActive
+                                      ? (isDark ? const Color(0xFF38251E) : const Color(0xFFFDEEE7))
+                                      : (isDark ? const Color(0xFF231E1B) : const Color(0xFFE8E2DE)),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  '$count',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: isActive
+                                        ? AppTheme.primaryColor
+                                        : (isDark ? AppTheme.textMutedDark : AppTheme.textMutedLight),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  }).toList(),
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
             ),

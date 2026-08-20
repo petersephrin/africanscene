@@ -186,9 +186,10 @@ class _AdminStaffPageState extends State<AdminStaffPage> {
                       DropdownButtonFormField<String>(
                         key: ValueKey(selectedRole),
                         initialValue: selectedRole,
+                        isExpanded: true,
                         items: const [
-                          DropdownMenuItem(value: 'staff_admin', child: Text('Staff Admin')),
-                          DropdownMenuItem(value: 'admin', child: Text('Super Admin')),
+                          DropdownMenuItem(value: 'staff_admin', child: Text('Staff Admin', overflow: TextOverflow.ellipsis)),
+                          DropdownMenuItem(value: 'admin', child: Text('Super Admin', overflow: TextOverflow.ellipsis)),
                         ],
                         onChanged: (val) => setDialogState(() => selectedRole = val ?? 'staff_admin'),
                       ),

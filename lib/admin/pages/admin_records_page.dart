@@ -27,13 +27,6 @@ class _AdminRecordsPageState extends State<AdminRecordsPage> {
   int _page = 0;
   static const int _pageSize = 50;
 
-  final List<FormType> _formTypes = [
-    FormType.weekly,
-    FormType.termly,
-    FormType.annually,
-    FormType.special,
-  ];
-
   @override
   void dispose() {
     _searchController.dispose();
@@ -705,57 +698,115 @@ class _AdminRecordsPageState extends State<AdminRecordsPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // 1. Header Section: Title, Subtitle, and "Export CSV" Button
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isCompact = constraints.maxWidth < 620;
+                if (isCompact) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'All Records',
+                        style: GoogleFonts.poppins(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? AppTheme.textLight : AppTheme.textDark,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${records.length} total submissions across all schools',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isDark ? AppTheme.textMutedDark : AppTheme.textMutedLight,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ElevatedButton.icon(
+                        onPressed: filtered.isEmpty
+                            ? null
+                            : () => _exportToCSV(filtered, _filterType == 'all' ? 'all' : _filterType, schoolMap),
+                        icon: const Icon(Icons.download_rounded, size: 18),
+                        label: const Text(
+                          'Export CSV',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryColor,
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor: AppTheme.primaryColor.withValues(alpha: 0.4),
+                          disabledForegroundColor: Colors.white.withValues(alpha: 0.7),
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(
-                      'All Records',
-                      style: GoogleFonts.poppins(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? AppTheme.textLight : AppTheme.textDark,
-                        letterSpacing: -0.3,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'All Records',
+                            style: GoogleFonts.poppins(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? AppTheme.textLight : AppTheme.textDark,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${records.length} total submissions across all schools',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: isDark ? AppTheme.textMutedDark : AppTheme.textMutedLight,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${records.length} total submissions across all schools',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isDark ? AppTheme.textMutedDark : AppTheme.textMutedLight,
+                    const SizedBox(width: 16),
+                    ElevatedButton.icon(
+                      onPressed: filtered.isEmpty
+                          ? null
+                          : () => _exportToCSV(filtered, _filterType == 'all' ? 'all' : _filterType, schoolMap),
+                      icon: const Icon(Icons.download_rounded, size: 18),
+                      label: const Text(
+                        'Export CSV',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor: AppTheme.primaryColor.withValues(alpha: 0.4),
+                        disabledForegroundColor: Colors.white.withValues(alpha: 0.7),
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                     ),
                   ],
-                ),
-                ElevatedButton.icon(
-                  onPressed: filtered.isEmpty
-                      ? null
-                      : () => _exportToCSV(filtered, _filterType == 'all' ? 'all' : _filterType, schoolMap),
-                  icon: const Icon(Icons.download_rounded, size: 18),
-                  label: const Text(
-                    'Export CSV',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryColor,
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: AppTheme.primaryColor.withValues(alpha: 0.4),
-                    disabledForegroundColor: Colors.white.withValues(alpha: 0.7),
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-              ],
+                );
+              },
             ),
 
             const SizedBox(height: 20),
@@ -799,33 +850,29 @@ class _AdminRecordsPageState extends State<AdminRecordsPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'EXPORT BY TYPE:',
+                  'EXPORT BY FORM TYPE',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    letterSpacing: 0.6,
+                    letterSpacing: 0.8,
                     color: isDark ? AppTheme.textMutedDark : AppTheme.textMutedLight,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: _formTypes.map((type) {
-                    final typeRecords = records.where((r) {
-                      final matchSchool = _filterSchool == 'all' || r.schoolId == _filterSchool;
-                      return r.formType == type && matchSchool;
-                    }).toList();
-
+                  children: FormType.values.map((type) {
+                    final typeRecords = records.where((r) => r.formType == type).toList();
                     return InkWell(
                       onTap: typeRecords.isEmpty
                           ? null
                           : () => _exportToCSV(typeRecords, type.toDbString(), schoolMap),
                       borderRadius: BorderRadius.circular(8),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).cardColor,
+                          color: isDark ? const Color(0xFF231E1B) : const Color(0xFFF7F5F3),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
                             color: isDark ? AppTheme.borderDark : const Color(0xFFEBE6E2),
@@ -864,151 +911,307 @@ class _AdminRecordsPageState extends State<AdminRecordsPage> {
             const SizedBox(height: 20),
 
             // 4. Search and Filters Row
-            Row(
-              children: [
-                // Search Input
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF231E1B) : const Color(0xFFF7F5F3),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isDark ? AppTheme.borderDark : const Color(0xFFEBE6E2),
-                        width: 1,
-                      ),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.search_rounded,
-                          color: isDark ? AppTheme.textMutedDark : const Color(0xFF85746E),
-                          size: 18,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: TextField(
-                            controller: _searchController,
-                            onChanged: (val) => setState(() {
-                              _searchQuery = val;
-                              _page = 0;
-                            }),
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: isDark ? AppTheme.textLight : AppTheme.textDark,
-                            ),
-                            decoration: InputDecoration(
-                              hintText: 'Search records…',
-                              hintStyle: TextStyle(
-                                fontSize: 13,
-                                color: isDark ? AppTheme.textMutedDark : const Color(0xFF85746E),
-                              ),
-                              border: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              filled: false,
-                              contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                          ),
-                        ),
-                        if (_searchQuery.isNotEmpty)
-                          IconButton(
-                            icon: const Icon(Icons.close_rounded, size: 16),
-                            color: isDark ? AppTheme.textMutedDark : const Color(0xFF85746E),
-                            onPressed: () {
-                              _searchController.clear();
-                              setState(() {
-                                _searchQuery = '';
-                                _page = 0;
-                              });
-                            },
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(width: 10),
-
-                // Form Type Filter Dropdown
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF231E1B) : const Color(0xFFF7F5F3),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isDark ? AppTheme.borderDark : const Color(0xFFEBE6E2),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isNarrow = constraints.maxWidth < 680;
+                if (isNarrow) {
+                  return Column(
                     children: [
-                      Icon(
-                        Icons.filter_list_rounded,
-                        size: 16,
-                        color: isDark ? AppTheme.textMutedDark : const Color(0xFF85746E),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF231E1B) : const Color(0xFFF7F5F3),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isDark ? AppTheme.borderDark : const Color(0xFFEBE6E2),
+                            width: 1,
+                          ),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.search_rounded,
+                              color: isDark ? AppTheme.textMutedDark : const Color(0xFF85746E),
+                              size: 18,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: TextField(
+                                controller: _searchController,
+                                onChanged: (val) => setState(() {
+                                  _searchQuery = val;
+                                  _page = 0;
+                                }),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: isDark ? AppTheme.textLight : AppTheme.textDark,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: 'Search records…',
+                                  hintStyle: TextStyle(
+                                    fontSize: 13,
+                                    color: isDark ? AppTheme.textMutedDark : const Color(0xFF85746E),
+                                  ),
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  filled: false,
+                                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                                ),
+                              ),
+                            ),
+                            if (_searchQuery.isNotEmpty)
+                              IconButton(
+                                icon: const Icon(Icons.close_rounded, size: 16),
+                                color: isDark ? AppTheme.textMutedDark : const Color(0xFF85746E),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() {
+                                    _searchQuery = '';
+                                    _page = 0;
+                                  });
+                                },
+                              ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(width: 6),
-                      DropdownButtonHideUnderline(
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF231E1B) : const Color(0xFFF7F5F3),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isDark ? AppTheme.borderDark : const Color(0xFFEBE6E2),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.filter_list_rounded,
+                                    size: 16,
+                                    color: isDark ? AppTheme.textMutedDark : const Color(0xFF85746E),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: DropdownButtonHideUnderline(
+                                      child: DropdownButton<String>(
+                                        value: _filterType,
+                                        isExpanded: true,
+                                        dropdownColor: Theme.of(context).cardColor,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: isDark ? AppTheme.textLight : AppTheme.textDark,
+                                        ),
+                                        items: const [
+                                          DropdownMenuItem(value: 'all', child: Text('All types')),
+                                          DropdownMenuItem(value: 'weekly', child: Text('Weekly')),
+                                          DropdownMenuItem(value: 'termly', child: Text('Termly')),
+                                          DropdownMenuItem(value: 'annually', child: Text('Annually')),
+                                          DropdownMenuItem(value: 'special', child: Text('Special')),
+                                        ],
+                                        onChanged: (val) => setState(() {
+                                          _filterType = val ?? 'all';
+                                          _page = 0;
+                                        }),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF231E1B) : const Color(0xFFF7F5F3),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isDark ? AppTheme.borderDark : const Color(0xFFEBE6E2),
+                                ),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  value: _filterSchool,
+                                  isExpanded: true,
+                                  dropdownColor: Theme.of(context).cardColor,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: isDark ? AppTheme.textLight : AppTheme.textDark,
+                                  ),
+                                  items: [
+                                    const DropdownMenuItem(value: 'all', child: Text('All schools', overflow: TextOverflow.ellipsis)),
+                                    ...schools.map((s) => DropdownMenuItem(
+                                      value: s.id,
+                                      child: Text(s.name, overflow: TextOverflow.ellipsis),
+                                    )),
+                                  ],
+                                  onChanged: (val) => setState(() {
+                                    _filterSchool = val ?? 'all';
+                                    _page = 0;
+                                  }),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                }
+
+                return Row(
+                  children: [
+                    // Search Input
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF231E1B) : const Color(0xFFF7F5F3),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isDark ? AppTheme.borderDark : const Color(0xFFEBE6E2),
+                            width: 1,
+                          ),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.search_rounded,
+                              color: isDark ? AppTheme.textMutedDark : const Color(0xFF85746E),
+                              size: 18,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: TextField(
+                                controller: _searchController,
+                                onChanged: (val) => setState(() {
+                                  _searchQuery = val;
+                                  _page = 0;
+                                }),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: isDark ? AppTheme.textLight : AppTheme.textDark,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: 'Search records…',
+                                  hintStyle: TextStyle(
+                                    fontSize: 13,
+                                    color: isDark ? AppTheme.textMutedDark : const Color(0xFF85746E),
+                                  ),
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  filled: false,
+                                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                                ),
+                              ),
+                            ),
+                            if (_searchQuery.isNotEmpty)
+                              IconButton(
+                                icon: const Icon(Icons.close_rounded, size: 16),
+                                color: isDark ? AppTheme.textMutedDark : const Color(0xFF85746E),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() {
+                                    _searchQuery = '';
+                                    _page = 0;
+                                  });
+                                },
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(width: 10),
+
+                    // Form Type Filter Dropdown
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF231E1B) : const Color(0xFFF7F5F3),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isDark ? AppTheme.borderDark : const Color(0xFFEBE6E2),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.filter_list_rounded,
+                            size: 16,
+                            color: isDark ? AppTheme.textMutedDark : const Color(0xFF85746E),
+                          ),
+                          const SizedBox(width: 6),
+                          DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: _filterType,
+                              dropdownColor: Theme.of(context).cardColor,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: isDark ? AppTheme.textLight : AppTheme.textDark,
+                              ),
+                              items: const [
+                                DropdownMenuItem(value: 'all', child: Text('All types')),
+                                DropdownMenuItem(value: 'weekly', child: Text('Weekly')),
+                                DropdownMenuItem(value: 'termly', child: Text('Termly')),
+                                DropdownMenuItem(value: 'annually', child: Text('Annually')),
+                                DropdownMenuItem(value: 'special', child: Text('Special')),
+                              ],
+                              onChanged: (val) => setState(() {
+                                _filterType = val ?? 'all';
+                                _page = 0;
+                              }),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(width: 10),
+
+                    // School Filter Dropdown
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF231E1B) : const Color(0xFFF7F5F3),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isDark ? AppTheme.borderDark : const Color(0xFFEBE6E2),
+                        ),
+                      ),
+                      child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
-                          value: _filterType,
+                          value: _filterSchool,
                           dropdownColor: Theme.of(context).cardColor,
                           style: TextStyle(
                             fontSize: 13,
                             color: isDark ? AppTheme.textLight : AppTheme.textDark,
                           ),
-                          items: const [
-                            DropdownMenuItem(value: 'all', child: Text('All types')),
-                            DropdownMenuItem(value: 'weekly', child: Text('Weekly')),
-                            DropdownMenuItem(value: 'termly', child: Text('Termly')),
-                            DropdownMenuItem(value: 'annually', child: Text('Annually')),
-                            DropdownMenuItem(value: 'special', child: Text('Special')),
+                          items: [
+                            const DropdownMenuItem(value: 'all', child: Text('All schools')),
+                            ...schools.map((s) => DropdownMenuItem(
+                              value: s.id,
+                              child: Text(s.name),
+                            )),
                           ],
                           onChanged: (val) => setState(() {
-                            _filterType = val ?? 'all';
+                            _filterSchool = val ?? 'all';
                             _page = 0;
                           }),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(width: 10),
-
-                // School Filter Dropdown
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF231E1B) : const Color(0xFFF7F5F3),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isDark ? AppTheme.borderDark : const Color(0xFFEBE6E2),
                     ),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: _filterSchool,
-                      dropdownColor: Theme.of(context).cardColor,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: isDark ? AppTheme.textLight : AppTheme.textDark,
-                      ),
-                      items: [
-                        const DropdownMenuItem(value: 'all', child: Text('All schools')),
-                        ...schools.map((s) => DropdownMenuItem(
-                          value: s.id,
-                          child: Text(s.name),
-                        )),
-                      ],
-                      onChanged: (val) => setState(() {
-                        _filterSchool = val ?? 'all';
-                        _page = 0;
-                      }),
-                    ),
-                  ),
-                ),
-              ],
+                  ],
+                );
+              },
             ),
 
             const SizedBox(height: 20),
@@ -1079,13 +1282,16 @@ class _AdminRecordsPageState extends State<AdminRecordsPage> {
                         ],
                       ),
                     )
-                  : SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(minWidth: 860),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
+                  : LayoutBuilder(
+                      builder: (context, constraints) {
+                        final double tableWidth = constraints.maxWidth > 860 ? constraints.maxWidth : 860;
+                        return SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: SizedBox(
+                            width: tableWidth,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
                             // Table Header Row
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
@@ -1380,7 +1586,9 @@ class _AdminRecordsPageState extends State<AdminRecordsPage> {
                           ],
                         ),
                       ),
-                    ),
+                    );
+                  },
+                ),
             ),
           ],
         ),

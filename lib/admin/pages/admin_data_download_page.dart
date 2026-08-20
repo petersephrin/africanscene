@@ -42,7 +42,6 @@ class _AdminDataDownloadPageState extends State<AdminDataDownloadPage> {
   Future<void> _handleDownload() async {
     final adminData = context.read<AdminDataProvider>();
     final schools = adminData.schools;
-    final users = adminData.users;
     final records = adminData.records;
     final fields = adminData.formFields;
     final requests = adminData.deletionRequests;
@@ -253,12 +252,12 @@ class _AdminDataDownloadPageState extends State<AdminDataDownloadPage> {
             // Format Selection
             const Text('2. Select File Format', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
-            Row(
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
               children: [
                 _buildFormatCard(ExportFormat.xlsx, 'Excel Spreadsheet (.xlsx)', Icons.table_chart_outlined, AppTheme.successColor),
-                const SizedBox(width: 12),
                 _buildFormatCard(ExportFormat.csv, 'CSV Data (.csv)', Icons.grid_on_outlined, AppTheme.accentColor),
-                const SizedBox(width: 12),
                 _buildFormatCard(ExportFormat.json, 'Raw JSON (.json)', Icons.code_outlined, AppTheme.primaryColor),
               ],
             ),
@@ -353,35 +352,33 @@ class _AdminDataDownloadPageState extends State<AdminDataDownloadPage> {
 
   Widget _buildFormatCard(ExportFormat format, String title, IconData icon, Color color) {
     final isSelected = _selectedFormat == format;
-    return Expanded(
-      child: InkWell(
-        onTap: () => setState(() => _selectedFormat = format),
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: isSelected ? color.withOpacity(0.12) : Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isSelected ? color : Theme.of(context).dividerColor,
-              width: isSelected ? 1.5 : 1,
-            ),
+    return InkWell(
+      onTap: () => setState(() => _selectedFormat = format),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withOpacity(0.12) : Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? color : Theme.of(context).dividerColor,
+            width: isSelected ? 1.5 : 1,
           ),
-          child: Column(
-            children: [
-              Icon(icon, size: 24, color: isSelected ? color : Colors.grey),
-              const SizedBox(height: 6),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: isSelected ? color : null,
-                ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 20, color: isSelected ? color : Colors.grey),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected ? color : null,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

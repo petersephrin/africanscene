@@ -718,53 +718,107 @@ class _AdminTeachersPageState extends State<AdminTeachersPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // 1. Header Section: Title, Subtitle, and "Add Teacher" Button
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isCompact = constraints.maxWidth < 620;
+                if (isCompact) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Teachers',
+                        style: GoogleFonts.poppins(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? AppTheme.textLight : AppTheme.textDark,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${teachers.length} teacher${teachers.length == 1 ? '' : 's'} registered',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isDark ? AppTheme.textMutedDark : AppTheme.textMutedLight,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ElevatedButton.icon(
+                        onPressed: () => _showAddEditTeacherDialog(),
+                        icon: const Icon(Icons.add, size: 18),
+                        label: const Text(
+                          'Add Teacher',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryColor,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(
-                      'Teachers',
-                      style: GoogleFonts.poppins(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? AppTheme.textLight : AppTheme.textDark,
-                        letterSpacing: -0.3,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Teachers',
+                            style: GoogleFonts.poppins(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? AppTheme.textLight : AppTheme.textDark,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${teachers.length} teacher${teachers.length == 1 ? '' : 's'} registered',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: isDark ? AppTheme.textMutedDark : AppTheme.textMutedLight,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${teachers.length} teacher${teachers.length == 1 ? '' : 's'} registered',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isDark ? AppTheme.textMutedDark : AppTheme.textMutedLight,
+                    const SizedBox(width: 16),
+                    ElevatedButton.icon(
+                      onPressed: () => _showAddEditTeacherDialog(),
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text(
+                        'Add Teacher',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                     ),
                   ],
-                ),
-                ElevatedButton.icon(
-                  onPressed: () => _showAddEditTeacherDialog(),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text(
-                    'Add Teacher',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryColor,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-              ],
+                );
+              },
             ),
 
             const SizedBox(height: 20),
@@ -888,13 +942,16 @@ class _AdminTeachersPageState extends State<AdminTeachersPage> {
                         ],
                       ),
                     )
-                  : SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(minWidth: 800),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
+                  : LayoutBuilder(
+                      builder: (context, constraints) {
+                        final double tableWidth = constraints.maxWidth > 800 ? constraints.maxWidth : 800;
+                        return SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: SizedBox(
+                            width: tableWidth,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
                             // Table Header Row
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
@@ -1202,7 +1259,9 @@ class _AdminTeachersPageState extends State<AdminTeachersPage> {
                           ],
                         ),
                       ),
-                    ),
+                    );
+                  },
+                ),
             ),
           ],
         ),

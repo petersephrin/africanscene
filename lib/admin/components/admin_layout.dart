@@ -5,7 +5,6 @@ import '../../providers/admin_data_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../models/user_model.dart';
 import '../../theme/app_theme.dart';
-import '../../components/notification_modal.dart';
 import '../pages/admin_dashboard_page.dart';
 import '../pages/admin_schools_page.dart';
 import '../pages/admin_researchers_page.dart';
