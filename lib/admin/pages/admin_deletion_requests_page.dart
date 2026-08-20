@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../providers/admin_data_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/theme_provider.dart';
 import '../../models/deletion_request_model.dart';
 import '../../theme/app_theme.dart';
-import '../../components/record_preview_modal.dart';
 
 class AdminDeletionRequestsPage extends StatefulWidget {
   const AdminDeletionRequestsPage({super.key});
@@ -15,235 +16,491 @@ class AdminDeletionRequestsPage extends StatefulWidget {
 }
 
 class _AdminDeletionRequestsPageState extends State<AdminDeletionRequestsPage> {
-  String _statusFilter = 'pending';
+  // ==========================================
+  // CONFIRM ACTION DIALOG (APPROVE / REJECT)
+  // ==========================================
+  void _confirmAction({
+    required DeletionRequestModel request,
+    required DeletionStatus action,
+    required String requesterName,
+    required String schoolName,
+    required String formType,
+  }) {
+    final isApprove = action == DeletionStatus.approved;
 
-  @override
-  Widget build(BuildContext context) {
-    final adminData = context.watch<AdminDataProvider>();
-    final auth = context.watch<AuthProvider>();
-    final currentUser = auth.user;
-    final allRequests = adminData.deletionRequests;
-    final allRecords = adminData.records;
-    final allSchools = adminData.schools;
-    final schoolMap = Map.fromEntries(allSchools.map((s) => MapEntry(s.id, s.name)));
-
-    final filtered = allRequests.where((req) {
-      if (_statusFilter != 'all' && req.status.toDbString() != _statusFilter) return false;
-      return true;
-    }).toList();
-
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
           children: [
-            // Status Filter Tabs
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Theme.of(context).dividerColor),
-              ),
-              child: Row(
-                children: [
-                  const Text('Status Filter:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                  const SizedBox(width: 14),
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      _buildFilterChip('Pending', 'pending', allRequests.where((r) => r.status == DeletionStatus.pending).length),
-                      _buildFilterChip('Approved', 'approved', allRequests.where((r) => r.status == DeletionStatus.approved).length),
-                      _buildFilterChip('Rejected', 'rejected', allRequests.where((r) => r.status == DeletionStatus.rejected).length),
-                      _buildFilterChip('All Requests', 'all', allRequests.length),
-                    ],
-                  ),
-                ],
-              ),
+            Icon(
+              isApprove ? Icons.check_circle_outline_rounded : Icons.cancel_outlined,
+              color: isApprove ? AppTheme.successColor : AppTheme.dangerColor,
+              size: 22,
             ),
-            const SizedBox(height: 16),
-
-            // Queue List
-            Expanded(
-              child: filtered.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.check_circle_outline, size: 52, color: Colors.grey.withOpacity(0.5)),
-                          const SizedBox(height: 12),
-                          Text('No $_statusFilter deletion requests in queue.', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                        ],
-                      ),
-                    )
-                  : ListView.separated(
-                      itemCount: filtered.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final req = filtered[index];
-                        final relatedRecord = allRecords.where((r) => r.id == req.recordId).firstOrNull;
-                        final dateStr = req.createdAt != null
-                            ? DateFormat('MMM d, y • h:mm a').format(req.createdAt!)
-                            : '';
-
-                        return Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).cardColor,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Theme.of(context).dividerColor),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                        decoration: BoxDecoration(
-                                          color: _getStatusColor(req.status).withOpacity(0.12),
-                                          borderRadius: BorderRadius.circular(6),
-                                        ),
-                                        child: Text(
-                                          req.status.displayName.toUpperCase(),
-                                          style: TextStyle(
-                                            color: _getStatusColor(req.status),
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 11,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Text(
-                                        'Record ID: ${req.recordId.length > 12 ? req.recordId.substring(0, 12) + "..." : req.recordId}',
-                                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                                      ),
-                                    ],
-                                  ),
-                                  Text(dateStr, style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                'Reason: "${req.reason}"',
-                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, fontStyle: FontStyle.italic),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Requested by: ${req.requesterName ?? req.requestedBy}',
-                                style: TextStyle(fontSize: 12, color: Theme.of(context).textTheme.bodySmall?.color),
-                              ),
-                              if (req.reviewedBy != null) ...[
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Reviewed by: ${req.reviewerName ?? req.reviewedBy}',
-                                  style: const TextStyle(fontSize: 11, color: Colors.grey),
-                                ),
-                              ],
-                              const SizedBox(height: 12),
-                              const Divider(),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  if (relatedRecord != null)
-                                    TextButton.icon(
-                                      icon: const Icon(Icons.visibility_outlined, size: 16),
-                                      label: const Text('Inspect Record Data', style: TextStyle(fontSize: 12)),
-                                      onPressed: () {
-                                        showModalBottomSheet(
-                                          context: context,
-                                          isScrollControlled: true,
-                                          backgroundColor: Colors.transparent,
-                                          builder: (_) => RecordPreviewModal(
-                                            record: relatedRecord,
-                                            schoolName: schoolMap[relatedRecord.schoolId],
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  if (req.status == DeletionStatus.pending && currentUser != null) ...[
-                                    const SizedBox(width: 8),
-                                    OutlinedButton.icon(
-                                      style: OutlinedButton.styleFrom(
-                                        foregroundColor: AppTheme.dangerColor,
-                                        side: const BorderSide(color: AppTheme.dangerColor),
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                      ),
-                                      icon: const Icon(Icons.check, size: 16),
-                                      label: const Text('Approve & Delete Record', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                                      onPressed: () async {
-                                        await adminData.reviewDeletionRequest(
-                                          requestId: req.id,
-                                          recordId: req.recordId,
-                                          status: DeletionStatus.approved,
-                                          reviewer: currentUser,
-                                        );
-                                        if (mounted) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Deletion request approved and record removed.'), backgroundColor: AppTheme.successColor),
-                                          );
-                                        }
-                                      },
-                                    ),
-                                    const SizedBox(width: 8),
-                                    ElevatedButton.icon(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.grey,
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                      ),
-                                      icon: const Icon(Icons.close, size: 16),
-                                      label: const Text('Reject Request', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                                      onPressed: () async {
-                                        await adminData.reviewDeletionRequest(
-                                          requestId: req.id,
-                                          recordId: req.recordId,
-                                          status: DeletionStatus.rejected,
-                                          reviewer: currentUser,
-                                        );
-                                        if (mounted) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Deletion request rejected.')),
-                                          );
-                                        }
-                                      },
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+            const SizedBox(width: 8),
+            Text(
+              isApprove ? 'Approve Deletion?' : 'Reject Request?',
+              style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ],
         ),
+        content: Text(
+          isApprove
+              ? 'Are you sure you want to approve this deletion request from $requesterName? The $formType record for $schoolName will be permanently deleted.'
+              : 'Are you sure you want to reject this deletion request from $requesterName? The record will remain intact.',
+          style: const TextStyle(fontSize: 13, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isApprove ? AppTheme.successColor : AppTheme.dangerColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final adminData = context.read<AdminDataProvider>();
+              final auth = context.read<AuthProvider>();
+              final currentUser = auth.user;
+
+              if (currentUser != null) {
+                await adminData.reviewDeletionRequest(
+                  requestId: request.id,
+                  recordId: request.recordId,
+                  status: action,
+                  reviewer: currentUser,
+                );
+
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        isApprove
+                            ? 'Request approved. Record has been deleted.'
+                            : 'Request was rejected.',
+                      ),
+                      backgroundColor: isApprove ? AppTheme.successColor : const Color(0xFF4A3E39),
+                    ),
+                  );
+                }
+              }
+            },
+            child: Text(isApprove ? 'Approve & Delete' : 'Reject Request'),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildFilterChip(String label, String value, int count) {
-    final isSelected = _statusFilter == value;
-    return ChoiceChip(
-      label: Text('$label ($count)', style: TextStyle(fontSize: 12, color: isSelected ? Colors.white : null)),
-      selected: isSelected,
-      selectedColor: AppTheme.accentColor,
-      onSelected: (_) => setState(() => _statusFilter = value),
-    );
-  }
+  @override
+  Widget build(BuildContext context) {
+    final adminData = context.watch<AdminDataProvider>();
+    final themeProvider = context.watch<ThemeProvider>();
+    final isDark = themeProvider.isDarkMode;
 
-  Color _getStatusColor(DeletionStatus status) {
-    switch (status) {
-      case DeletionStatus.approved:
-        return AppTheme.successColor;
-      case DeletionStatus.rejected:
-        return AppTheme.dangerColor;
-      case DeletionStatus.pending:
-        return AppTheme.warningColor;
-    }
+    final allRequests = adminData.deletionRequests;
+    final allRecords = adminData.records;
+    final allSchools = adminData.schools;
+    final allUsers = adminData.users;
+
+    final schoolMap = Map.fromEntries(allSchools.map((s) => MapEntry(s.id, s.name)));
+    final userMap = Map.fromEntries(allUsers.map((u) => MapEntry(u.id, u.name)));
+    final recordMap = Map.fromEntries(allRecords.map((r) => MapEntry(r.id, r)));
+
+    final pending = allRequests.where((r) => r.status == DeletionStatus.pending).toList();
+    final resolved = allRequests.where((r) => r.status != DeletionStatus.pending).toList();
+
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // 1. Header Section
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Deletion Requests',
+                  style: GoogleFonts.poppins(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? AppTheme.textLight : AppTheme.textDark,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${pending.length} pending · ${resolved.length} resolved',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? AppTheme.textMutedDark : AppTheme.textMutedLight,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            // 2. Pending Requests Section
+            if (pending.isNotEmpty) ...[
+              Text(
+                'Pending Requests',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? AppTheme.textLight : AppTheme.textDark,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: pending.length,
+                separatorBuilder: (context, index) => const SizedBox(height: 10),
+                itemBuilder: (context, index) {
+                  final req = pending[index];
+                  final requesterName = req.requesterName ?? userMap[req.requestedBy] ?? req.requestedBy;
+                  final relatedRecord = recordMap[req.recordId];
+                  final schoolName = relatedRecord != null
+                      ? (schoolMap[relatedRecord.schoolId] ?? 'School ${relatedRecord.schoolId}')
+                      : 'Unknown School';
+                  final formType = relatedRecord?.formType.displayName ?? 'Record';
+                  final dateStr = req.createdAt != null
+                      ? DateFormat('d/M/yyyy, h:mm:ss a').format(req.createdAt!)
+                      : '—';
+
+                  return Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isDark ? const Color(0xFF92400E) : const Color(0xFFFDE68A),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Left Info
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Top Name & Type
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.warning_amber_rounded,
+                                    size: 16,
+                                    color: Color(0xFFD97706),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    requesterName,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark ? AppTheme.textLight : AppTheme.textDark,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: isDark ? const Color(0xFF3B332E) : const Color(0xFFF3ECE6),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      formType.toLowerCase(),
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w500,
+                                        color: isDark ? AppTheme.textLight : AppTheme.textDark,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 4),
+
+                              // School & Date
+                              Text(
+                                '$schoolName · $dateStr',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark ? AppTheme.textMutedDark : const Color(0xFF85746E),
+                                ),
+                              ),
+
+                              const SizedBox(height: 8),
+
+                              // Reason Box
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? const Color(0xFF231E1B)
+                                      : const Color(0xFFF7F5F3),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  '"${req.reason}"',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontStyle: FontStyle.italic,
+                                    color: isDark ? AppTheme.textLight : AppTheme.textDark,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(width: 12),
+
+                        // Right Action Buttons (Approve & Reject)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Approve Button
+                            InkWell(
+                              onTap: () => _confirmAction(
+                                request: req,
+                                action: DeletionStatus.approved,
+                                requesterName: requesterName,
+                                schoolName: schoolName,
+                                formType: formType,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? const Color(0xFF064E3B).withValues(alpha: 0.3)
+                                      : const Color(0xFFD1FAE5),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                alignment: Alignment.center,
+                                child: Icon(
+                                  Icons.check_rounded,
+                                  size: 18,
+                                  color: isDark
+                                      ? const Color(0xFF34D399)
+                                      : const Color(0xFF047857),
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(width: 8),
+
+                            // Reject Button
+                            InkWell(
+                              onTap: () => _confirmAction(
+                                request: req,
+                                action: DeletionStatus.rejected,
+                                requesterName: requesterName,
+                                schoolName: schoolName,
+                                formType: formType,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFDC2626).withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                alignment: Alignment.center,
+                                child: const Icon(
+                                  Icons.close_rounded,
+                                  size: 18,
+                                  color: Color(0xFFDC2626),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 24),
+            ],
+
+            // 3. Resolved Requests Section
+            if (resolved.isNotEmpty) ...[
+              Text(
+                'Resolved',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? AppTheme.textLight : AppTheme.textDark,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: resolved.length,
+                separatorBuilder: (context, index) => const SizedBox(height: 8),
+                itemBuilder: (context, index) {
+                  final req = resolved[index];
+                  final isApproved = req.status == DeletionStatus.approved;
+                  final requesterName = req.requesterName ?? userMap[req.requestedBy] ?? req.requestedBy;
+                  final relatedRecord = recordMap[req.recordId];
+                  final schoolName = relatedRecord != null
+                      ? (schoolMap[relatedRecord.schoolId] ?? 'School ${relatedRecord.schoolId}')
+                      : 'Unknown School';
+                  final formType = relatedRecord?.formType.displayName ?? 'Record';
+                  final dateStr = req.createdAt != null
+                      ? DateFormat('d/M/yyyy, h:mm:ss a').format(req.createdAt!)
+                      : '—';
+
+                  return Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor.withValues(alpha: 0.7),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isDark ? AppTheme.borderDark : const Color(0xFFEBE6E2),
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              isApproved ? Icons.check_rounded : Icons.close_rounded,
+                              size: 15,
+                              color: isApproved ? const Color(0xFF059669) : const Color(0xFFDC2626),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              requesterName,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? AppTheme.textLight : AppTheme.textDark,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF3B332E) : const Color(0xFFF3ECE6),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                formType.toLowerCase(),
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
+                                  color: isDark ? AppTheme.textLight : AppTheme.textDark,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: isApproved
+                                    ? (isDark
+                                        ? const Color(0xFF064E3B).withValues(alpha: 0.3)
+                                        : const Color(0xFFD1FAE5))
+                                    : const Color(0xFFDC2626).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                req.status.toDbString(),
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
+                                  color: isApproved
+                                      ? (isDark
+                                          ? const Color(0xFF34D399)
+                                          : const Color(0xFF047857))
+                                      : const Color(0xFFDC2626),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '$schoolName · $dateStr',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? AppTheme.textMutedDark : const Color(0xFF85746E),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '"${req.reason}"',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontStyle: FontStyle.italic,
+                            color: isDark ? AppTheme.textMutedDark : const Color(0xFF85746E),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
+
+            // 4. Empty State
+            if (allRequests.isEmpty)
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 64),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark ? AppTheme.borderDark : const Color(0xFFEBE6E2),
+                    width: 1,
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.delete_outline_rounded,
+                      size: 40,
+                      color: (isDark ? AppTheme.textMutedDark : AppTheme.textMutedLight)
+                          .withValues(alpha: 0.3),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'No deletion requests',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: isDark ? AppTheme.textMutedDark : AppTheme.textMutedLight,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 }
