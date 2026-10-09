@@ -31,6 +31,16 @@ class SchoolModel {
     this.updatedAt,
   });
 
+  bool get isKrc {
+    final n = name.toLowerCase().trim();
+    return id == 'HpqYW7x9Tw9PW4doI89N' || n.contains('kangemi') || n.contains('krc');
+  }
+
+  bool get isRec {
+    final n = name.toLowerCase().trim();
+    return id == 'KOZ6Ky9lr5lcHk7W6JQX' || n.contains('raila') || n.contains('rec');
+  }
+
   factory SchoolModel.fromFirestore(DocumentSnapshot doc) {
     final data = (doc.data() as Map<String, dynamic>?) ?? {};
     return SchoolModel.fromMap(data, doc.id);

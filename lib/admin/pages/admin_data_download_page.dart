@@ -18,6 +18,12 @@ enum ExportTarget {
   recordsTermly,
   recordsAnnually,
   recordsSpecial,
+  recordsKrcWeekly,
+  recordsKrcTermly,
+  recordsKrcAnnually,
+  recordsRecWeekly,
+  recordsRecTermly,
+  recordsRecAnnually,
 }
 
 enum ExportFormat {
@@ -108,11 +114,23 @@ class _AdminDataDownloadPageState extends State<AdminDataDownloadPage> {
         case ExportTarget.recordsTermly:
         case ExportTarget.recordsAnnually:
         case ExportTarget.recordsSpecial:
+        case ExportTarget.recordsKrcWeekly:
+        case ExportTarget.recordsKrcTermly:
+        case ExportTarget.recordsKrcAnnually:
+        case ExportTarget.recordsRecWeekly:
+        case ExportTarget.recordsRecTermly:
+        case ExportTarget.recordsRecAnnually:
           FormType? filterType;
           if (_selectedTarget == ExportTarget.recordsWeekly) filterType = FormType.weekly;
           if (_selectedTarget == ExportTarget.recordsTermly) filterType = FormType.termly;
           if (_selectedTarget == ExportTarget.recordsAnnually) filterType = FormType.annually;
           if (_selectedTarget == ExportTarget.recordsSpecial) filterType = FormType.special;
+          if (_selectedTarget == ExportTarget.recordsKrcWeekly) filterType = FormType.krcWeekly;
+          if (_selectedTarget == ExportTarget.recordsKrcTermly) filterType = FormType.krcTermly;
+          if (_selectedTarget == ExportTarget.recordsKrcAnnually) filterType = FormType.krcAnnually;
+          if (_selectedTarget == ExportTarget.recordsRecWeekly) filterType = FormType.recWeekly;
+          if (_selectedTarget == ExportTarget.recordsRecTermly) filterType = FormType.recTermly;
+          if (_selectedTarget == ExportTarget.recordsRecAnnually) filterType = FormType.recAnnually;
 
           final targetRecords = records.where((r) {
             if (_selectedSchool != 'all' && r.schoolId != _selectedSchool) return false;
@@ -239,6 +257,12 @@ class _AdminDataDownloadPageState extends State<AdminDataDownloadPage> {
                 _buildTargetCard(ExportTarget.recordsTermly, 'Termly Records', Icons.menu_book_outlined),
                 _buildTargetCard(ExportTarget.recordsAnnually, 'Annual Records', Icons.school_outlined),
                 _buildTargetCard(ExportTarget.recordsSpecial, 'Special Records', Icons.star_outline),
+                _buildTargetCard(ExportTarget.recordsKrcWeekly, 'KRC Weekly', Icons.calendar_month_outlined),
+                _buildTargetCard(ExportTarget.recordsKrcTermly, 'KRC Termly', Icons.menu_book_rounded),
+                _buildTargetCard(ExportTarget.recordsKrcAnnually, 'KRC Annually', Icons.account_balance_outlined),
+                _buildTargetCard(ExportTarget.recordsRecWeekly, 'REC Weekly', Icons.date_range_outlined),
+                _buildTargetCard(ExportTarget.recordsRecTermly, 'REC Termly', Icons.library_books_outlined),
+                _buildTargetCard(ExportTarget.recordsRecAnnually, 'REC Annually', Icons.domain_outlined),
                 _buildTargetCard(ExportTarget.schools, 'Institutions Registry', Icons.apartment_outlined),
                 _buildTargetCard(ExportTarget.researchers, 'Researchers Directory', Icons.biotech_outlined),
                 _buildTargetCard(ExportTarget.teachers, 'Teachers Directory', Icons.person_pin_outlined),

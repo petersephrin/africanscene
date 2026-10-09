@@ -18,29 +18,19 @@ class ProfilePage extends StatelessWidget {
     final records = school.records;
 
     final userSchools = schools.where((s) => user?.schoolIds.contains(s.id) ?? false).toList();
+    final activeSchool = school.activeSchool;
 
-    final recordTypes = [
-      {
-        'type': FormType.weekly,
-        'label': 'Weekly Records',
-        'icon': Icons.calendar_today_outlined,
-      },
-      {
-        'type': FormType.termly,
-        'label': 'Termly Records',
-        'icon': Icons.menu_book_outlined,
-      },
-      {
-        'type': FormType.annually,
-        'label': 'Annual Records',
-        'icon': Icons.school_outlined,
-      },
-      {
-        'type': FormType.special,
-        'label': 'Special Records',
-        'icon': Icons.star_outline,
-      },
-    ];
+    final visibleTypes = FormType.getVisibleTypes(
+      school: activeSchool,
+      user: user,
+      allSchools: schools,
+    );
+
+    final recordTypes = visibleTypes.map((ft) => {
+      'type': ft,
+      'label': '${ft.displayName} Records',
+      'icon': ft.icon,
+    }).toList();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.only(bottom: 96),

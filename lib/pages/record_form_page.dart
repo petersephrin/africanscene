@@ -236,12 +236,133 @@ class _RecordFormPageState extends State<RecordFormPage> {
     );
   }
 
+  void _showCategoryPicker(BuildContext context, List<FormType> visibleTypes) {
+    if (visibleTypes.isEmpty) return;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.75,
+          ),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).dividerColor,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Select Record Category',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, size: 20),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Flexible(
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: visibleTypes.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 4),
+                      itemBuilder: (context, idx) {
+                        final type = visibleTypes[idx];
+                        final isSelected = type == _currentFormType;
+                        return ListTile(
+                          leading: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: type.color.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(type.icon, color: type.color, size: 18),
+                          ),
+                          title: Text(
+                            type.displayName,
+                            style: TextStyle(
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                              color: isSelected ? AppTheme.primaryColor : null,
+                            ),
+                          ),
+                          subtitle: Text(type.description, style: const TextStyle(fontSize: 12)),
+                          trailing: isSelected
+                              ? const Icon(Icons.check_circle, color: AppTheme.primaryColor)
+                              : null,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          onTap: () {
+                            Navigator.pop(ctx);
+                            setState(() {
+                              _currentFormType = type;
+                              _isFormView = false;
+                              _editingRecord = null;
+                            });
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final school = context.watch<SchoolProvider>();
     final user = auth.user;
     final activeSchool = school.activeSchool;
+
+    final visibleTypes = FormType.getVisibleTypes(
+      school: activeSchool,
+      user: user,
+      allSchools: school.schools,
+    );
+
+    if (visibleTypes.isNotEmpty && !visibleTypes.contains(_currentFormType)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _currentFormType = visibleTypes.first;
+            _isFormView = false;
+            _editingRecord = null;
+          });
+        }
+      });
+    }
+
     final currentFields = school.getFieldsByType(_currentFormType);
     final allRecords = school.getRecordsByType(_currentFormType);
 
@@ -283,10 +404,7 @@ class _RecordFormPageState extends State<RecordFormPage> {
                                 _editingRecord = null;
                               });
                             } else {
-                              // Cycle record types
-                              final types = FormType.values;
-                              final nextIdx = (types.indexOf(_currentFormType) + 1) % types.length;
-                              setState(() => _currentFormType = types[nextIdx]);
+                              _showCategoryPicker(context, visibleTypes);
                             }
                           },
                           borderRadius: BorderRadius.circular(8),
@@ -294,7 +412,7 @@ class _RecordFormPageState extends State<RecordFormPage> {
                             padding: const EdgeInsets.symmetric(vertical: 4),
                             child: Row(
                               children: [
-                                const Icon(Icons.arrow_back, size: 16, color: Colors.white70),
+                                Icon(_isFormView ? Icons.arrow_back : Icons.swap_horiz, size: 16, color: Colors.white70),
                                 const SizedBox(width: 6),
                                 Text(
                                   _isFormView ? 'Back to list' : 'Switch Category',
@@ -310,18 +428,29 @@ class _RecordFormPageState extends State<RecordFormPage> {
                         ),
 
                         // Form Type Badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            _currentFormType.displayName,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
+                        InkWell(
+                          onTap: () => _showCategoryPicker(context, visibleTypes),
+                          borderRadius: BorderRadius.circular(999),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  _currentFormType.displayName,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                const Icon(Icons.arrow_drop_down, color: Colors.white70, size: 16),
+                              ],
                             ),
                           ),
                         ),

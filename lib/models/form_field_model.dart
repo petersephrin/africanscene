@@ -1,10 +1,20 @@
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../theme/app_theme.dart';
+import 'school_model.dart';
+import 'user_model.dart';
 
 enum FormType {
   weekly,
   termly,
   annually,
-  special;
+  special,
+  krcWeekly,
+  krcTermly,
+  krcAnnually,
+  recWeekly,
+  recTermly,
+  recAnnually;
 
   static FormType fromString(String? val) {
     switch (val?.toLowerCase().trim()) {
@@ -14,6 +24,30 @@ enum FormType {
         return FormType.termly;
       case 'annually':
         return FormType.annually;
+      case 'krc_weekly':
+      case 'krcweekly':
+      case 'krc weekly':
+        return FormType.krcWeekly;
+      case 'krc_termly':
+      case 'krctermly':
+      case 'krc termly':
+        return FormType.krcTermly;
+      case 'krc_annually':
+      case 'krcannually':
+      case 'krc annually':
+        return FormType.krcAnnually;
+      case 'rec_weekly':
+      case 'recweekly':
+      case 'rec weekly':
+        return FormType.recWeekly;
+      case 'rec_termly':
+      case 'rectermly':
+      case 'rec termly':
+        return FormType.recTermly;
+      case 'rec_annually':
+      case 'recannually':
+      case 'rec annually':
+        return FormType.recAnnually;
       case 'special':
       default:
         return FormType.special;
@@ -30,6 +64,18 @@ enum FormType {
         return 'annually';
       case FormType.special:
         return 'special';
+      case FormType.krcWeekly:
+        return 'krc_weekly';
+      case FormType.krcTermly:
+        return 'krc_termly';
+      case FormType.krcAnnually:
+        return 'krc_annually';
+      case FormType.recWeekly:
+        return 'rec_weekly';
+      case FormType.recTermly:
+        return 'rec_termly';
+      case FormType.recAnnually:
+        return 'rec_annually';
     }
   }
 
@@ -43,7 +89,179 @@ enum FormType {
         return 'Annually';
       case FormType.special:
         return 'Special';
+      case FormType.krcWeekly:
+        return 'KRC Weekly';
+      case FormType.krcTermly:
+        return 'KRC Termly';
+      case FormType.krcAnnually:
+        return 'KRC Annually';
+      case FormType.recWeekly:
+        return 'REC Weekly';
+      case FormType.recTermly:
+        return 'REC Termly';
+      case FormType.recAnnually:
+        return 'REC Annually';
     }
+  }
+
+  String get description {
+    switch (this) {
+      case FormType.weekly:
+        return 'Weekly observations & data';
+      case FormType.termly:
+        return 'End of term summaries';
+      case FormType.annually:
+        return 'Annual research findings';
+      case FormType.special:
+        return 'Special events & notes';
+      case FormType.krcWeekly:
+        return 'Kangemi weekly observations';
+      case FormType.krcTermly:
+        return 'Kangemi end of term summaries';
+      case FormType.krcAnnually:
+        return 'Kangemi annual findings';
+      case FormType.recWeekly:
+        return 'Raila weekly observations';
+      case FormType.recTermly:
+        return 'Raila end of term summaries';
+      case FormType.recAnnually:
+        return 'Raila annual findings';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case FormType.weekly:
+        return Icons.calendar_today_outlined;
+      case FormType.termly:
+        return Icons.menu_book_outlined;
+      case FormType.annually:
+        return Icons.school_outlined;
+      case FormType.special:
+        return Icons.star_outline;
+      case FormType.krcWeekly:
+        return Icons.calendar_month_outlined;
+      case FormType.krcTermly:
+        return Icons.menu_book_rounded;
+      case FormType.krcAnnually:
+        return Icons.account_balance_outlined;
+      case FormType.recWeekly:
+        return Icons.date_range_outlined;
+      case FormType.recTermly:
+        return Icons.library_books_outlined;
+      case FormType.recAnnually:
+        return Icons.domain_outlined;
+    }
+  }
+
+  Color get color {
+    switch (this) {
+      case FormType.weekly:
+        return AppTheme.primaryColor;
+      case FormType.termly:
+        return AppTheme.accentColor;
+      case FormType.annually:
+        return const Color(0xFF8B5CF6);
+      case FormType.special:
+        return const Color(0xFFF59E0B);
+      case FormType.krcWeekly:
+        return const Color(0xFF10B981);
+      case FormType.krcTermly:
+        return const Color(0xFF0D9488);
+      case FormType.krcAnnually:
+        return const Color(0xFF059669);
+      case FormType.recWeekly:
+        return const Color(0xFF6366F1);
+      case FormType.recTermly:
+        return const Color(0xFF4F46E5);
+      case FormType.recAnnually:
+        return const Color(0xFF4338CA);
+    }
+  }
+
+  bool get isKrc =>
+      this == FormType.krcWeekly ||
+      this == FormType.krcTermly ||
+      this == FormType.krcAnnually;
+
+  bool get isRec =>
+      this == FormType.recWeekly ||
+      this == FormType.recTermly ||
+      this == FormType.recAnnually;
+
+  bool get isSchoolSpecific => isKrc || isRec;
+
+  /// Check if this form type is visible given the active school
+  bool isVisibleForSchool(SchoolModel? school) {
+    if (isKrc) return school?.isKrc == true;
+    if (isRec) return school?.isRec == true;
+    return true; // Standard types visible to everyone
+  }
+
+  /// Get list of visible form types for a researcher or school context
+  static List<FormType> getVisibleTypes({
+    SchoolModel? school,
+    UserModel? user,
+    List<SchoolModel> allSchools = const [],
+  }) {
+    // Super admins and platform admins see everything
+    if (user != null && user.isAdmin) {
+      return FormType.values;
+    }
+
+    final list = <FormType>[
+      FormType.weekly,
+      FormType.termly,
+      FormType.annually,
+      FormType.special,
+    ];
+
+    final userCanSeeKrc = user == null ||
+        user.schoolIds.isEmpty ||
+        user.isAffiliatedWithKrc(allSchools);
+    final userCanSeeRec = user == null ||
+        user.schoolIds.isEmpty ||
+        user.isAffiliatedWithRec(allSchools);
+
+    if (school != null) {
+      if (school.isKrc && userCanSeeKrc) {
+        list.addAll([
+          FormType.krcWeekly,
+          FormType.krcTermly,
+          FormType.krcAnnually,
+        ]);
+        return list;
+      }
+      if (school.isRec && userCanSeeRec) {
+        list.addAll([
+          FormType.recWeekly,
+          FormType.recTermly,
+          FormType.recAnnually,
+        ]);
+        return list;
+      }
+      return list;
+    }
+
+    // If no specific school selected, show whatever user is affiliated with
+    if (user != null) {
+      if (user.isAffiliatedWithKrc(allSchools)) {
+        list.addAll([
+          FormType.krcWeekly,
+          FormType.krcTermly,
+          FormType.krcAnnually,
+        ]);
+      }
+      if (user.isAffiliatedWithRec(allSchools)) {
+        list.addAll([
+          FormType.recWeekly,
+          FormType.recTermly,
+          FormType.recAnnually,
+        ]);
+      }
+    }
+
+    return list;
   }
 }
 

@@ -20,6 +20,12 @@ class _AdminFormFieldsPageState extends State<AdminFormFieldsPage> {
     FormType.termly,
     FormType.annually,
     FormType.special,
+    FormType.krcWeekly,
+    FormType.krcTermly,
+    FormType.krcAnnually,
+    FormType.recWeekly,
+    FormType.recTermly,
+    FormType.recAnnually,
   ];
 
   final List<CustomFieldType> _fieldTypes = [

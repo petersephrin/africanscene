@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'school_model.dart';
 
 enum UserRole {
   superAdmin,
@@ -114,6 +115,22 @@ class UserModel {
 
   bool get isAdmin => role.isAdmin;
   bool get isSchoolAdmin => role == UserRole.schoolAdmin;
+
+  bool isAffiliatedWithKrc([List<SchoolModel> allSchools = const []]) {
+    if (schoolIds.contains('HpqYW7x9Tw9PW4doI89N')) return true;
+    if (allSchools.isNotEmpty) {
+      return allSchools.any((s) => schoolIds.contains(s.id) && s.isKrc);
+    }
+    return false;
+  }
+
+  bool isAffiliatedWithRec([List<SchoolModel> allSchools = const []]) {
+    if (schoolIds.contains('KOZ6Ky9lr5lcHk7W6JQX')) return true;
+    if (allSchools.isNotEmpty) {
+      return allSchools.any((s) => schoolIds.contains(s.id) && s.isRec);
+    }
+    return false;
+  }
 
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
     final data = (doc.data() as Map<String, dynamic>?) ?? {};

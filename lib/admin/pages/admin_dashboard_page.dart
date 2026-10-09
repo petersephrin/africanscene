@@ -290,12 +290,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                             value: _selectedFormType,
                             underline: const SizedBox(),
                             isDense: true,
-                            items: const [
-                              DropdownMenuItem(value: 'all', child: Text('All Types', style: TextStyle(fontSize: 13))),
-                              DropdownMenuItem(value: 'weekly', child: Text('Weekly', style: TextStyle(fontSize: 13))),
-                              DropdownMenuItem(value: 'termly', child: Text('Termly', style: TextStyle(fontSize: 13))),
-                              DropdownMenuItem(value: 'annually', child: Text('Annually', style: TextStyle(fontSize: 13))),
-                              DropdownMenuItem(value: 'special', child: Text('Special', style: TextStyle(fontSize: 13))),
+                            items: [
+                              const DropdownMenuItem(value: 'all', child: Text('All Types', style: TextStyle(fontSize: 13))),
+                              ...FormType.values.map((ft) => DropdownMenuItem(
+                                value: ft.toDbString(),
+                                child: Text(ft.displayName, style: const TextStyle(fontSize: 13)),
+                              )),
                             ],
                             onChanged: (val) => setState(() => _selectedFormType = val ?? 'all'),
                           ),
@@ -464,7 +464,15 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                             children: [
                               Container(width: 8, height: 8, decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(2))),
                               const SizedBox(width: 5),
-                              Text(f.label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(maxWidth: 160),
+                                child: Text(
+                                  f.label,
+                                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
                             ],
                           );
                         }),
@@ -641,7 +649,15 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                             children: [
                               Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
                               const SizedBox(width: 5),
-                              Text(entry.key, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(maxWidth: 160),
+                                child: Text(
+                                  entry.key,
+                                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
                             ],
                           );
                         }),
@@ -819,12 +835,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                       crossAxisSpacing: 10,
                       mainAxisSpacing: 10,
                       childAspectRatio: isWide ? 2.0 : 1.8,
-                      children: [
-                        _buildFormFieldBox('Weekly', formFields.where((f) => f.formType == FormType.weekly).length),
-                        _buildFormFieldBox('Termly', formFields.where((f) => f.formType == FormType.termly).length),
-                        _buildFormFieldBox('Annually', formFields.where((f) => f.formType == FormType.annually).length),
-                        _buildFormFieldBox('Special', formFields.where((f) => f.formType == FormType.special).length),
-                      ],
+                      children: FormType.values.map((ft) =>
+                        _buildFormFieldBox(ft.displayName, formFields.where((f) => f.formType == ft).length),
+                      ).toList(),
                     );
                   },
                 ),

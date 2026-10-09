@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/school_provider.dart';
+import '../providers/auth_provider.dart';
 import '../models/form_field_model.dart';
 import '../theme/app_theme.dart';
 
@@ -11,6 +12,8 @@ class StatsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final school = context.watch<SchoolProvider>();
+    final auth = context.watch<AuthProvider>();
+    final user = auth.user;
     final activeSchool = school.activeSchool;
     final records = activeSchool != null
         ? school.records.where((r) => r.schoolId == activeSchool.id).toList()
@@ -20,36 +23,19 @@ class StatsPage extends StatelessWidget {
     final synced = records.where((r) => r.synced && !r.isOffline).length;
     final pending = total - synced;
 
-    final types = [
-      {
-        'type': FormType.weekly,
-        'label': 'Weekly Records',
-        'icon': Icons.calendar_today_outlined,
-        'bg': AppTheme.primaryColor.withValues(alpha: 0.1),
-        'fg': AppTheme.primaryColor,
-      },
-      {
-        'type': FormType.termly,
-        'label': 'Termly Records',
-        'icon': Icons.menu_book_outlined,
-        'bg': AppTheme.accentColor.withValues(alpha: 0.1),
-        'fg': AppTheme.accentColor,
-      },
-      {
-        'type': FormType.annually,
-        'label': 'Annual Records',
-        'icon': Icons.school_outlined,
-        'bg': const Color(0xFF8B5CF6).withValues(alpha: 0.1),
-        'fg': const Color(0xFF8B5CF6),
-      },
-      {
-        'type': FormType.special,
-        'label': 'Special Records',
-        'icon': Icons.star_outline,
-        'bg': Colors.grey.withValues(alpha: 0.1),
-        'fg': Colors.grey,
-      },
-    ];
+    final visibleTypes = FormType.getVisibleTypes(
+      school: activeSchool,
+      user: user,
+      allSchools: school.schools,
+    );
+
+    final types = visibleTypes.map((ft) => {
+      'type': ft,
+      'label': '${ft.displayName} Records',
+      'icon': ft.icon,
+      'bg': ft.color.withValues(alpha: 0.1),
+      'fg': ft.color,
+    }).toList();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.only(bottom: 96),

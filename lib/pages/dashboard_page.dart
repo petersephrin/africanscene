@@ -30,32 +30,18 @@ class DashboardPage extends StatelessWidget {
     final pendingCount = school.pendingSyncCount;
     final firstName = user?.name.split(' ').firstOrNull ?? 'User';
 
-    final recordCategories = [
-      {
-        'type': FormType.weekly,
-        'label': 'Weekly',
-        'desc': 'Weekly observations & data',
-        'icon': Icons.calendar_today_outlined,
-      },
-      {
-        'type': FormType.termly,
-        'label': 'Termly',
-        'desc': 'End of term summaries',
-        'icon': Icons.menu_book_outlined,
-      },
-      {
-        'type': FormType.annually,
-        'label': 'Annually',
-        'desc': 'Annual research findings',
-        'icon': Icons.school_outlined,
-      },
-      {
-        'type': FormType.special,
-        'label': 'Special',
-        'desc': 'Special events & notes',
-        'icon': Icons.star_outline,
-      },
-    ];
+    final visibleTypes = FormType.getVisibleTypes(
+      school: activeSchool,
+      user: user,
+      allSchools: school.schools,
+    );
+
+    final recordCategories = visibleTypes.map((type) => {
+      'type': type,
+      'label': type.displayName,
+      'desc': type.description,
+      'icon': type.icon,
+    }).toList();
 
     final recentRecords = school.records.take(5).toList();
 

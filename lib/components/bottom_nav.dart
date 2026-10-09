@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../models/form_field_model.dart';
+import '../providers/school_provider.dart';
+import '../providers/auth_provider.dart';
 
 class BottomNav extends StatefulWidget {
   final int currentIndex;
@@ -33,6 +36,13 @@ class _BottomNavState extends State<BottomNav> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final school = context.watch<SchoolProvider>();
+    final auth = context.watch<AuthProvider>();
+    final visibleTypes = FormType.getVisibleTypes(
+      school: school.activeSchool,
+      user: auth.user,
+      allSchools: school.schools,
+    );
 
     return Stack(
       alignment: Alignment.bottomCenter,
@@ -43,34 +53,22 @@ class _BottomNavState extends State<BottomNav> {
           Positioned(
             bottom: 74,
             child: Container(
+              constraints: const BoxConstraints(maxHeight: 380),
               padding: const EdgeInsets.only(bottom: 8),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildFabOption(
-                    icon: Icons.calendar_today_outlined,
-                    label: 'Weekly Record',
-                    onTap: () => _handleRecordSelect(FormType.weekly),
-                  ),
-                  const SizedBox(height: 8),
-                  _buildFabOption(
-                    icon: Icons.menu_book_outlined,
-                    label: 'Termly Record',
-                    onTap: () => _handleRecordSelect(FormType.termly),
-                  ),
-                  const SizedBox(height: 8),
-                  _buildFabOption(
-                    icon: Icons.school_outlined,
-                    label: 'Annual Record',
-                    onTap: () => _handleRecordSelect(FormType.annually),
-                  ),
-                  const SizedBox(height: 8),
-                  _buildFabOption(
-                    icon: Icons.star_outline,
-                    label: 'Special Record',
-                    onTap: () => _handleRecordSelect(FormType.special),
-                  ),
-                ],
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: visibleTypes.map((type) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: _buildFabOption(
+                        icon: type.icon,
+                        label: '${type.displayName} Record',
+                        onTap: () => _handleRecordSelect(type),
+                      ),
+                    );
+                  }).toList(),
+                ),
               ),
             ),
           ),

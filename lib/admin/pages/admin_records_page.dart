@@ -1006,12 +1006,12 @@ class _AdminRecordsPageState extends State<AdminRecordsPage> {
                                           fontSize: 13,
                                           color: isDark ? AppTheme.textLight : AppTheme.textDark,
                                         ),
-                                        items: const [
-                                          DropdownMenuItem(value: 'all', child: Text('All types')),
-                                          DropdownMenuItem(value: 'weekly', child: Text('Weekly')),
-                                          DropdownMenuItem(value: 'termly', child: Text('Termly')),
-                                          DropdownMenuItem(value: 'annually', child: Text('Annually')),
-                                          DropdownMenuItem(value: 'special', child: Text('Special')),
+                                        items: [
+                                          const DropdownMenuItem(value: 'all', child: Text('All types')),
+                                          ...FormType.values.map((ft) => DropdownMenuItem(
+                                            value: ft.toDbString(),
+                                            child: Text(ft.displayName),
+                                          )),
                                         ],
                                         onChanged: (val) => setState(() {
                                           _filterType = val ?? 'all';
@@ -1158,12 +1158,12 @@ class _AdminRecordsPageState extends State<AdminRecordsPage> {
                                 fontSize: 13,
                                 color: isDark ? AppTheme.textLight : AppTheme.textDark,
                               ),
-                              items: const [
-                                DropdownMenuItem(value: 'all', child: Text('All types')),
-                                DropdownMenuItem(value: 'weekly', child: Text('Weekly')),
-                                DropdownMenuItem(value: 'termly', child: Text('Termly')),
-                                DropdownMenuItem(value: 'annually', child: Text('Annually')),
-                                DropdownMenuItem(value: 'special', child: Text('Special')),
+                              items: [
+                                const DropdownMenuItem(value: 'all', child: Text('All types')),
+                                ...FormType.values.map((ft) => DropdownMenuItem(
+                                  value: ft.toDbString(),
+                                  child: Text(ft.displayName),
+                                )),
                               ],
                               onChanged: (val) => setState(() {
                                 _filterType = val ?? 'all';
