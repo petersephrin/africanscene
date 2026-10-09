@@ -55,8 +55,19 @@ class _AdminStaffPageState extends State<AdminStaffPage> {
                   _buildDetailRow(
                     ctx,
                     'Role',
-                    s.role == UserRole.superAdmin || s.role == UserRole.admin ? 'Super Admin' : 'Staff Admin',
+                    s.role == UserRole.schoolAdmin
+                        ? 'School Administrator'
+                        : (s.role == UserRole.superAdmin || s.role == UserRole.admin ? 'Super Admin' : 'Staff Admin'),
                   ),
+                  if (s.schoolIds.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Builder(
+                      builder: (context) {
+                        final matched = context.read<AdminDataProvider>().schools.where((sc) => s.schoolIds.contains(sc.id)).map((sc) => sc.name).join(', ');
+                        return _buildDetailRow(ctx, 'Assigned School', matched.isNotEmpty ? matched : s.schoolIds.join(', '));
+                      },
+                    ),
+                  ],
                   const SizedBox(height: 12),
                   _buildDetailRow(ctx, 'Status', s.status),
                   const SizedBox(height: 12),
@@ -113,9 +124,14 @@ class _AdminStaffPageState extends State<AdminStaffPage> {
     final deptCtrl = TextEditingController(text: editingStaff?.department ?? '');
     final phoneCtrl = TextEditingController(text: editingStaff?.phone ?? '');
     final passCtrl = TextEditingController(text: editingStaff == null ? 'Password123!' : '');
+    final adminData = context.read<AdminDataProvider>();
+    final schools = adminData.schools;
     String selectedRole = editingStaff != null
-        ? (editingStaff.role == UserRole.superAdmin || editingStaff.role == UserRole.admin ? 'admin' : 'staff_admin')
+        ? (editingStaff.role == UserRole.schoolAdmin || editingStaff.userType == 'school_admin'
+            ? 'school_admin'
+            : (editingStaff.role == UserRole.superAdmin || editingStaff.role == UserRole.admin ? 'admin' : 'staff_admin'))
         : 'staff_admin';
+    String? selectedSchoolId = editingStaff?.schoolIds.firstOrNull ?? (schools.isNotEmpty ? schools.first.id : null);
 
     showDialog(
       context: context,
@@ -168,10 +184,18 @@ class _AdminStaffPageState extends State<AdminStaffPage> {
                         const SizedBox(height: 12),
                       ],
 
-                      // Department
-                      const Text('Department', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                      // Department / Organization
+                      Text(
+                        selectedRole == 'school_admin' ? 'Designation / Department' : 'Department',
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
                       const SizedBox(height: 6),
-                      TextField(controller: deptCtrl, decoration: const InputDecoration(hintText: 'Field Operations')),
+                      TextField(
+                        controller: deptCtrl,
+                        decoration: InputDecoration(
+                          hintText: selectedRole == 'school_admin' ? 'School Administration' : 'Field Operations',
+                        ),
+                      ),
                       const SizedBox(height: 12),
 
                       // Phone
@@ -190,10 +214,32 @@ class _AdminStaffPageState extends State<AdminStaffPage> {
                         items: const [
                           DropdownMenuItem(value: 'staff_admin', child: Text('Staff Admin', overflow: TextOverflow.ellipsis)),
                           DropdownMenuItem(value: 'admin', child: Text('Super Admin', overflow: TextOverflow.ellipsis)),
+                          DropdownMenuItem(value: 'school_admin', child: Text('School Administrator (Headteacher)', overflow: TextOverflow.ellipsis)),
                         ],
                         onChanged: (val) => setDialogState(() => selectedRole = val ?? 'staff_admin'),
                       ),
                       const SizedBox(height: 12),
+
+                      // Assigned School (if School Admin)
+                      if (selectedRole == 'school_admin') ...[
+                        const Text('Assigned School', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 6),
+                        if (schools.isEmpty)
+                          const Text('No schools available. Register a school first.', style: TextStyle(fontSize: 12, color: Colors.orange))
+                        else
+                          DropdownButtonFormField<String>(
+                            value: selectedSchoolId,
+                            isExpanded: true,
+                            items: schools.map((s) {
+                              return DropdownMenuItem(
+                                value: s.id,
+                                child: Text(s.name, overflow: TextOverflow.ellipsis),
+                              );
+                            }).toList(),
+                            onChanged: (val) => setDialogState(() => selectedSchoolId = val),
+                          ),
+                        const SizedBox(height: 12),
+                      ],
 
                       // Password (Add only)
                       if (editingStaff == null) ...[
@@ -227,8 +273,9 @@ class _AdminStaffPageState extends State<AdminStaffPage> {
                               ),
                               onPressed: () async {
                                 if (nameCtrl.text.trim().isEmpty) return;
-                                final adminData = context.read<AdminDataProvider>();
-                                final dbRole = selectedRole == 'admin' ? 'super_admin' : 'staff_admin';
+                                final dbRole = selectedRole == 'admin'
+                                    ? 'super_admin'
+                                    : (selectedRole == 'school_admin' ? 'school_admin' : 'staff_admin');
 
                                 try {
                                   if (editingStaff != null) {
@@ -238,16 +285,29 @@ class _AdminStaffPageState extends State<AdminStaffPage> {
                                       phone: phoneCtrl.text.trim(),
                                       department: deptCtrl.text.trim(),
                                       role: dbRole,
+                                      schoolIds: selectedRole == 'school_admin' && selectedSchoolId != null
+                                          ? [selectedSchoolId!]
+                                          : null,
                                     );
                                   } else {
                                     if (emailCtrl.text.trim().isEmpty || passCtrl.text.isEmpty) return;
+                                    final assignedSchool = schools.where((s) => s.id == selectedSchoolId).firstOrNull;
+                                    final defaultDept = deptCtrl.text.trim().isNotEmpty
+                                        ? deptCtrl.text.trim()
+                                        : (selectedRole == 'school_admin' && assignedSchool != null
+                                            ? assignedSchool.name
+                                            : 'Field Operations');
+
                                     await adminData.addStaff(
                                       name: nameCtrl.text.trim(),
                                       email: emailCtrl.text.trim(),
                                       role: dbRole,
-                                      department: deptCtrl.text.trim(),
+                                      department: defaultDept,
                                       phone: phoneCtrl.text.trim(),
                                       password: passCtrl.text,
+                                      schoolIds: selectedRole == 'school_admin' && selectedSchoolId != null
+                                          ? [selectedSchoolId!]
+                                          : [],
                                     );
                                   }
                                   if (context.mounted) {
@@ -447,11 +507,31 @@ class _AdminStaffPageState extends State<AdminStaffPage> {
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
                                 itemCount: filtered.length,
-                                separatorBuilder: (_, __) => Divider(height: 1, color: Theme.of(context).dividerColor),
+                                separatorBuilder: (_, _) => Divider(height: 1, color: Theme.of(context).dividerColor),
                                 itemBuilder: (context, index) {
                                   final s = filtered[index];
                                   final isSuper = s.role == UserRole.superAdmin || s.role == UserRole.admin;
+                                  final isSchoolAdmin = s.role == UserRole.schoolAdmin || s.userType == 'school_admin';
                                   final isActive = s.status == 'active';
+
+                                  // Format department/school
+                                  String deptDisplay = s.department?.isNotEmpty == true ? s.department! : '—';
+                                  if (isSchoolAdmin && s.schoolIds.isNotEmpty) {
+                                    final sc = adminData.schools.where((school) => s.schoolIds.contains(school.id)).firstOrNull;
+                                    if (sc != null) {
+                                      deptDisplay = sc.name;
+                                    }
+                                  }
+
+                                  final badgeColor = isSuper
+                                      ? AppTheme.primaryColor
+                                      : (isSchoolAdmin ? const Color(0xFF0EA5E9) : AppTheme.accentColor);
+                                  final roleText = isSuper
+                                      ? 'Super Admin'
+                                      : (isSchoolAdmin ? 'School Admin' : 'Staff Admin');
+                                  final roleIcon = isSuper
+                                      ? Icons.verified_user
+                                      : (isSchoolAdmin ? Icons.school_outlined : Icons.shield_outlined);
 
                                   return Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -485,12 +565,13 @@ class _AdminStaffPageState extends State<AdminStaffPage> {
                                           ),
                                         ),
 
-                                        // 2. Department
+                                        // 2. Department / Assigned School
                                         Expanded(
                                           flex: 2,
                                           child: Text(
-                                            s.department?.isNotEmpty == true ? s.department! : '—',
+                                            deptDisplay,
                                             style: TextStyle(fontSize: 13, color: Theme.of(context).textTheme.bodySmall?.color),
+                                            overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
 
@@ -502,26 +583,24 @@ class _AdminStaffPageState extends State<AdminStaffPage> {
                                             child: Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                               decoration: BoxDecoration(
-                                                color: isSuper
-                                                    ? AppTheme.primaryColor.withValues(alpha: 0.12)
-                                                    : AppTheme.accentColor.withValues(alpha: 0.12),
+                                                color: badgeColor.withValues(alpha: 0.12),
                                                 borderRadius: BorderRadius.circular(999),
                                               ),
                                               child: Row(
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
                                                   Icon(
-                                                    isSuper ? Icons.verified_user : Icons.shield_outlined,
+                                                    roleIcon,
                                                     size: 11,
-                                                    color: isSuper ? AppTheme.primaryColor : AppTheme.accentColor,
+                                                    color: badgeColor,
                                                   ),
                                                   const SizedBox(width: 4),
                                                   Text(
-                                                    isSuper ? 'Super Admin' : 'Staff Admin',
+                                                    roleText,
                                                     style: TextStyle(
                                                       fontSize: 11,
                                                       fontWeight: FontWeight.w600,
-                                                      color: isSuper ? AppTheme.primaryColor : AppTheme.accentColor,
+                                                      color: badgeColor,
                                                     ),
                                                   ),
                                                 ],

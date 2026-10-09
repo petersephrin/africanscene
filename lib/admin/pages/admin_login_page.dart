@@ -181,7 +181,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                             controller: _emailCtrl,
                             keyboardType: TextInputType.emailAddress,
                             decoration: const InputDecoration(
-                              hintText: 'admin@africascene.admin',
+                              hintText: 'admin@africanscene.org',
                               prefixIcon: Icon(Icons.mail_outline, size: 18),
                             ),
                           ),

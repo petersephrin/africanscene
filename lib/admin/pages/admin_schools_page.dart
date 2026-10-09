@@ -151,6 +151,17 @@ class _AdminSchoolsPageState extends State<AdminSchoolsPage> {
                         value: school.email!,
                         isDark: isDark,
                       ),
+                    Builder(
+                      builder: (context) {
+                        final assigned = context.watch<AdminDataProvider>().schoolAdmins.where((a) => a.schoolIds.contains(school.id)).toList();
+                        return _buildDetailChip(
+                          icon: Icons.admin_panel_settings_outlined,
+                          label: 'School Admin',
+                          value: assigned.isNotEmpty ? assigned.map((a) => a.name.isNotEmpty ? a.name : a.email).join(', ') : 'Not Assigned',
+                          isDark: isDark,
+                        );
+                      },
+                    ),
                   ],
                 ),
 

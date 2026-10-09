@@ -8,6 +8,7 @@ import '../models/record_model.dart';
 import '../models/user_model.dart';
 import '../models/notification_model.dart';
 import '../services/firestore_service.dart';
+import '../services/firebase_auth_service.dart';
 
 class RecordTypeChange {
   final FormType formType;
@@ -25,6 +26,7 @@ class RecordTypeChange {
 
 class SchoolProvider extends ChangeNotifier {
   final FirestoreService _firestoreService = FirestoreService();
+  final FirebaseAuthService _authService = FirebaseAuthService();
   final _uuid = const Uuid();
 
   List<SchoolModel> _schools = [];
@@ -32,6 +34,7 @@ class SchoolProvider extends ChangeNotifier {
   List<RecordModel> _records = [];
   List<FormFieldModel> _formFields = [];
   List<NotificationModel> _notifications = [];
+  List<UserModel> _schoolTeachers = [];
   bool _isOnline = true;
   bool _isLoading = true;
 
@@ -43,6 +46,7 @@ class SchoolProvider extends ChangeNotifier {
   List<RecordModel> get records => _records;
   List<FormFieldModel> get formFields => _formFields;
   List<NotificationModel> get notifications => _notifications;
+  List<UserModel> get schoolTeachers => _schoolTeachers;
   bool get isOnline => _isOnline;
   bool get isLoading => _isLoading;
   int get pendingSyncCount => _records.where((r) => !r.synced || r.isOffline).length;
@@ -228,7 +232,7 @@ class SchoolProvider extends ChangeNotifier {
   }) async {
     if (_activeSchool == null) return;
 
-    final snapshot = getFieldsByType(formType).map((f) => f.toMap()).toList();
+    final snapshot = getFieldsByType(formType).map((f) => f.toLocalJson()).toList();
     final localId = 'local_${DateTime.now().millisecondsSinceEpoch}_${_uuid.v4().substring(0, 6)}';
 
     final newRecord = RecordModel(
@@ -281,6 +285,86 @@ class SchoolProvider extends ChangeNotifier {
     _records = _records.map((r) => r.id == record.id ? record : r).toList();
     await _saveToLocalStorage();
     notifyListeners();
+  }
+
+  /// School Admin action: Update school details in Firestore and local cache
+  Future<void> updateSchoolDetails({
+    required String schoolId,
+    required Map<String, dynamic> updates,
+  }) async {
+    await _firestoreService.updateSchool(schoolId, updates);
+    final idx = _schools.indexWhere((s) => s.id == schoolId);
+    if (idx != -1) {
+      final old = _schools[idx];
+      final updated = old.copyWith(
+        name: updates['name'] as String?,
+        location: updates['location'] as String?,
+        type: updates['type'] as String?,
+        students: updates['students'] != null
+            ? int.tryParse(updates['students'].toString()) ?? old.students
+            : old.students,
+        motto: updates['motto'] as String?,
+        principal: updates['principal'] as String?,
+        phone: updates['phone'] as String?,
+        email: updates['email'] as String?,
+        description: updates['description'] as String?,
+      );
+      _schools[idx] = updated;
+      if (_activeSchool?.id == schoolId) {
+        _activeSchool = updated;
+      }
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_lsSchools, jsonEncode(_schools.map((s) => s.toLocalJson()).toList()));
+      notifyListeners();
+    }
+  }
+
+  /// School Admin action: Fetch all teachers assigned to a school
+  Future<List<UserModel>> fetchTeachersForSchool(String schoolId) async {
+    try {
+      final allUsers = await _firestoreService.fetchUsers();
+      final teachers = allUsers
+          .where((u) =>
+              (u.role == UserRole.teacher || u.userType == 'teacher') &&
+              u.schoolIds.contains(schoolId))
+          .toList();
+      _schoolTeachers = teachers;
+      notifyListeners();
+      return teachers;
+    } catch (e) {
+      debugPrint('Error fetching teachers for school $schoolId: $e');
+      return [];
+    }
+  }
+
+  /// School Admin action: Register and assign a new teacher directly to their school
+  Future<UserModel> addTeacherToSchool({
+    required String schoolId,
+    required String name,
+    required String email,
+    required String password,
+    String? phone,
+    String? specialization,
+  }) async {
+    final parts = name.trim().split(' ');
+    final fName = parts.first;
+    final lName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
+
+    final newTeacher = await _authService.createUserByAdmin(
+      email: email.trim(),
+      password: password,
+      firstName: fName,
+      lastName: lName,
+      role: UserRole.teacher,
+      userType: 'teacher',
+      phone: phone?.trim(),
+      specialization: specialization?.trim(),
+      schoolIds: [schoolId],
+    );
+
+    _schoolTeachers = [newTeacher, ..._schoolTeachers];
+    notifyListeners();
+    return newTeacher;
   }
 
   Future<int> syncRecords(UserModel user) async {

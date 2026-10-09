@@ -6,6 +6,7 @@ import '../providers/school_provider.dart';
 import '../models/form_field_model.dart';
 import '../theme/app_theme.dart';
 import '../components/school_switcher_modal.dart';
+import '../components/manage_school_modal.dart';
 
 class DashboardPage extends StatelessWidget {
   final Function(FormType)? onNavigateToForm;
@@ -103,6 +104,28 @@ class DashboardPage extends StatelessWidget {
                                 color: Colors.white,
                               ),
                             ),
+                            if (user?.isSchoolAdmin == true) ...[
+                              const SizedBox(height: 5),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.22),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.white.withValues(alpha: 0.35)),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.shield_outlined, size: 12, color: Colors.white),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'School Administrator',
+                                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ],
                         ),
 
@@ -293,6 +316,46 @@ class DashboardPage extends StatelessWidget {
                                       ),
                                     ),
                                   ],
+                                ),
+                              ),
+                            ],
+
+                            // School Admin Quick Management Action
+                            if (user?.isSchoolAdmin == true) ...[
+                              const SizedBox(height: 12),
+                              InkWell(
+                                onTap: () {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.transparent,
+                                    builder: (_) => ManageSchoolModal(school: activeSchool),
+                                  );
+                                },
+                                borderRadius: BorderRadius.circular(12),
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.22),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.white.withValues(alpha: 0.35)),
+                                  ),
+                                  child: const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.edit_note, size: 18, color: Colors.white),
+                                      SizedBox(width: 6),
+                                      Text(
+                                        'Manage School & Teachers',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],

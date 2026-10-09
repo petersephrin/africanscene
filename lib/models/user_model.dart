@@ -4,6 +4,7 @@ enum UserRole {
   superAdmin,
   admin,
   staffAdmin,
+  schoolAdmin,
   staff,
   researcher,
   teacher;
@@ -18,6 +19,11 @@ enum UserRole {
       case 'staff_admin':
       case 'staffadmin':
         return UserRole.staffAdmin;
+      case 'school_admin':
+      case 'schooladmin':
+      case 'headteacher':
+      case 'principal':
+        return UserRole.schoolAdmin;
       case 'staff':
       case 'hr':
         return UserRole.staff;
@@ -37,6 +43,8 @@ enum UserRole {
         return 'admin';
       case UserRole.staffAdmin:
         return 'staff_admin';
+      case UserRole.schoolAdmin:
+        return 'school_admin';
       case UserRole.staff:
         return 'staff';
       case UserRole.teacher:
@@ -54,6 +62,8 @@ enum UserRole {
         return 'Admin';
       case UserRole.staffAdmin:
         return 'Staff Admin';
+      case UserRole.schoolAdmin:
+        return 'School Administrator';
       case UserRole.staff:
         return 'Staff';
       case UserRole.teacher:
@@ -103,6 +113,7 @@ class UserModel {
   });
 
   bool get isAdmin => role.isAdmin;
+  bool get isSchoolAdmin => role == UserRole.schoolAdmin;
 
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
     final data = (doc.data() as Map<String, dynamic>?) ?? {};

@@ -31,12 +31,17 @@ class AdminDataProvider extends ChangeNotifier {
   List<UserModel> get teachers =>
       _users.where((u) => u.role == UserRole.teacher || u.userType == 'teacher').toList();
 
+  List<UserModel> get schoolAdmins =>
+      _users.where((u) => u.role == UserRole.schoolAdmin || u.userType == 'school_admin').toList();
+
   List<UserModel> get staff => _users
       .where((u) =>
           u.role == UserRole.staff ||
           u.role == UserRole.staffAdmin ||
           u.role == UserRole.superAdmin ||
           u.role == UserRole.admin ||
+          u.role == UserRole.schoolAdmin ||
+          u.userType == 'school_admin' ||
           u.userType == 'staff' ||
           u.userType == 'admin')
       .toList();
@@ -206,12 +211,11 @@ class AdminDataProvider extends ChangeNotifier {
     await updateResearcher(userId, name: name, phone: phone, specialization: specialization, schoolIds: schoolIds, role: role);
   }
 
-  Future<void> addStaff({
+  Future<void> addSchoolAdmin({
     required String name,
     required String email,
-    required String role,
-    required String department,
     required String phone,
+    required List<String> schoolIds,
     required String password,
   }) async {
     final parts = name.trim().split(' ');
@@ -223,10 +227,40 @@ class AdminDataProvider extends ChangeNotifier {
       password: password,
       firstName: fName,
       lastName: lName,
+      role: UserRole.schoolAdmin,
+      userType: 'school_admin',
+      phone: phone,
+      schoolIds: schoolIds,
+      specialization: 'School Administration & Oversight',
+    );
+  }
+
+  Future<void> addStaff({
+    required String name,
+    required String email,
+    required String role,
+    required String department,
+    required String phone,
+    required String password,
+    List<String>? schoolIds,
+  }) async {
+    final parts = name.trim().split(' ');
+    final fName = parts.first;
+    final lName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
+
+    final isSchoolAdmin = role == 'school_admin';
+
+    await _authService.createUserByAdmin(
+      email: email,
+      password: password,
+      firstName: fName,
+      lastName: lName,
       role: UserRole.fromString(role),
-      userType: role.contains('admin') ? 'admin' : 'staff',
+      userType: isSchoolAdmin ? 'school_admin' : (role.contains('admin') ? 'admin' : 'staff'),
       phone: phone,
       department: department,
+      schoolIds: schoolIds ?? const [],
+      specialization: isSchoolAdmin ? 'School Administration & Oversight' : null,
     );
   }
 
@@ -235,6 +269,7 @@ class AdminDataProvider extends ChangeNotifier {
     String? phone,
     String? department,
     String? role,
+    List<String>? schoolIds,
   }) async {
     final updates = <String, dynamic>{};
     if (name != null) {
@@ -245,23 +280,32 @@ class AdminDataProvider extends ChangeNotifier {
     }
     if (phone != null) updates['phone'] = phone;
     if (department != null) updates['department'] = department;
+    if (schoolIds != null) updates['schoolIds'] = schoolIds;
     if (role != null) {
       updates['role'] = role;
-      updates['user_type'] = (role.contains('admin') || role == 'staff')
-          ? (role.contains('admin') ? 'admin' : 'staff')
-          : (role == 'teacher' ? 'teacher' : 'researcher');
+      updates['user_type'] = role == 'school_admin'
+          ? 'school_admin'
+          : ((role.contains('admin') || role == 'staff')
+              ? (role.contains('admin') ? 'admin' : 'staff')
+              : (role == 'teacher' ? 'teacher' : 'researcher'));
     }
 
     await _firestoreService.updateUser(userId, updates);
   }
 
-  Future<void> updateUserRole(String userId, String role) async {
-    await _firestoreService.updateUser(userId, {
+  Future<void> updateUserRole(String userId, String role, {List<String>? schoolIds}) async {
+    final updates = <String, dynamic>{
       'role': role,
-      'user_type': (role.contains('admin') || role == 'staff')
-          ? (role.contains('admin') ? 'admin' : 'staff')
-          : (role == 'teacher' ? 'teacher' : 'researcher'),
-    });
+      'user_type': role == 'school_admin'
+          ? 'school_admin'
+          : ((role.contains('admin') || role == 'staff')
+              ? (role.contains('admin') ? 'admin' : 'staff')
+              : (role == 'teacher' ? 'teacher' : 'researcher')),
+    };
+    if (schoolIds != null) {
+      updates['schoolIds'] = schoolIds;
+    }
+    await _firestoreService.updateUser(userId, updates);
   }
 
   Future<void> deleteUser(String userId) async {

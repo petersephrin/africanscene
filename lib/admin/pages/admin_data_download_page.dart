@@ -62,7 +62,7 @@ class _AdminDataDownloadPageState extends State<AdminDataDownloadPage> {
           filename = 'schools_registry_$dateTag';
           headers = ['ID', 'Name', 'Location', 'Type', 'Students', 'Motto', 'Principal', 'Phone', 'Email', 'Established'];
           rows = schools.map((s) => [s.id, s.name, s.location, s.type, s.students, s.motto ?? '', s.principal ?? '', s.phone ?? '', s.email ?? '', s.established]).toList();
-          jsonData = schools.map((s) => s.toMap()).toList();
+          jsonData = schools.map((s) => s.toLocalJson()).toList();
           break;
 
         case ExportTarget.researchers:
@@ -70,7 +70,7 @@ class _AdminDataDownloadPageState extends State<AdminDataDownloadPage> {
           final list = adminData.researchers;
           headers = ['ID', 'Name', 'Email', 'Phone', 'Specialization', 'Assigned School Count', 'Status'];
           rows = list.map((u) => [u.id, u.name, u.email, u.phone ?? '', u.specialization ?? '', u.schoolIds.length, u.status]).toList();
-          jsonData = list.map((u) => u.toMap()).toList();
+          jsonData = list.map((u) => u.toLocalJson()).toList();
           break;
 
         case ExportTarget.teachers:
@@ -78,7 +78,7 @@ class _AdminDataDownloadPageState extends State<AdminDataDownloadPage> {
           final list = adminData.teachers;
           headers = ['ID', 'Name', 'Email', 'Phone', 'Subject/Grade', 'Assigned School Count', 'Status'];
           rows = list.map((u) => [u.id, u.name, u.email, u.phone ?? '', u.specialization ?? '', u.schoolIds.length, u.status]).toList();
-          jsonData = list.map((u) => u.toMap()).toList();
+          jsonData = list.map((u) => u.toLocalJson()).toList();
           break;
 
         case ExportTarget.staff:
@@ -86,21 +86,21 @@ class _AdminDataDownloadPageState extends State<AdminDataDownloadPage> {
           final list = adminData.staff;
           headers = ['ID', 'Name', 'Email', 'Phone', 'Role', 'Department', 'Status'];
           rows = list.map((u) => [u.id, u.name, u.email, u.phone ?? '', u.role.displayName, u.department ?? '', u.status]).toList();
-          jsonData = list.map((u) => u.toMap()).toList();
+          jsonData = list.map((u) => u.toLocalJson()).toList();
           break;
 
         case ExportTarget.formFields:
           filename = 'form_fields_templates_$dateTag';
           headers = ['ID', 'Form Type', 'Order', 'Label', 'Field Type', 'Required', 'Placeholder', 'Options'];
           rows = fields.map((f) => [f.id, f.formType.displayName, f.fieldOrder, f.label, f.fieldType.displayName, f.required, f.placeholder ?? '', f.options.join('|')]).toList();
-          jsonData = fields.map((f) => f.toMap()).toList();
+          jsonData = fields.map((f) => f.toLocalJson()).toList();
           break;
 
         case ExportTarget.deletionRequests:
           filename = 'deletion_requests_audit_$dateTag';
           headers = ['ID', 'Record ID', 'Requester', 'Reason', 'Status', 'Reviewer', 'Created At'];
           rows = requests.map((r) => [r.id, r.recordId, r.requesterName ?? r.requestedBy, r.reason, r.status.displayName, r.reviewerName ?? r.reviewedBy ?? '', r.createdAt?.toIso8601String() ?? '']).toList();
-          jsonData = requests.map((r) => r.toMap()).toList();
+          jsonData = requests.map((r) => r.toLocalJson()).toList();
           break;
 
         case ExportTarget.recordsAll:

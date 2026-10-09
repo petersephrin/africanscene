@@ -92,13 +92,15 @@ class RecordModel {
     if (val == null) return null;
     if (val is Timestamp) return val.toDate().toIso8601String();
     if (val is DateTime) return val.toIso8601String();
+    if (val is FieldValue) return null;
     if (val is Map) {
       return val.map((k, v) => MapEntry(k.toString(), _sanitizeForJson(v)));
     }
     if (val is List) {
       return val.map((e) => _sanitizeForJson(e)).toList();
     }
-    return val;
+    if (val is num || val is String || val is bool) return val;
+    return val.toString();
   }
 
   Map<String, dynamic> toLocalJson() {

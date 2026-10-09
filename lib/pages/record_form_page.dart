@@ -100,7 +100,7 @@ class _RecordFormPageState extends State<RecordFormPage> {
 
     try {
       final fields = school.getFieldsByType(_currentFormType);
-      final fieldsSnapshot = fields.map((f) => f.toMap()).toList();
+      final fieldsSnapshot = fields.map((f) => f.toLocalJson()).toList();
 
       final now = DateTime.now();
       final timeStr = DateFormat('h:mm a').format(now);
@@ -182,7 +182,7 @@ class _RecordFormPageState extends State<RecordFormPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Field researchers can request deletions for records. An administrator will review your request.',
+              'To maintain data integrity and audit compliance, records require administrative review for deletion. Please state your reason below.',
               style: TextStyle(fontSize: 13),
             ),
             const SizedBox(height: 12),
