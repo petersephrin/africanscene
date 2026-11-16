@@ -33,7 +33,10 @@ class SchoolModel {
 
   bool get isKrc {
     final n = name.toLowerCase().trim();
-    return id == 'HpqYW7x9Tw9PW4doI89N' || n.contains('kangemi') || n.contains('krc');
+    return id == 'HpqYW7x9Tw9PW4doI89N' ||
+        n.contains('kangemi') ||
+        n.contains('krc') ||
+        n.contains('kidogo');
   }
 
   bool get isRec {

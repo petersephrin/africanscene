@@ -71,7 +71,8 @@ class FirestoreService {
         .orderBy('field_order', descending: false)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) => FormFieldModel.fromFirestore(doc)).toList();
+      final list = snapshot.docs.map((doc) => FormFieldModel.fromFirestore(doc)).toList();
+      return _mergeAndAutoSeedMissingFormTypes(list);
     });
   }
 
@@ -80,7 +81,8 @@ class FirestoreService {
         .collection('form_fields')
         .orderBy('field_order', descending: false)
         .get();
-    return snapshot.docs.map((doc) => FormFieldModel.fromFirestore(doc)).toList();
+    final list = snapshot.docs.map((doc) => FormFieldModel.fromFirestore(doc)).toList();
+    return _mergeAndAutoSeedMissingFormTypes(list);
   }
 
   Future<String> addFormField(FormFieldModel field) async {
@@ -371,9 +373,62 @@ class FirestoreService {
   // SEED INITIAL DATABASE DATA
   // ==========================================
 
+  bool _isAutoSeeding = false;
+
+  List<FormFieldModel> _mergeAndAutoSeedMissingFormTypes(List<FormFieldModel> existing) {
+    final existingTypes = existing.map((f) => f.formType).toSet();
+    final defaults = _buildDefaultFormFields();
+    final missingFields = defaults.where((f) => !existingTypes.contains(f.formType)).toList();
+
+    if (missingFields.isEmpty) {
+      return existing;
+    }
+
+    if (!_isAutoSeeding) {
+      _isAutoSeeding = true;
+      Future.microtask(() async {
+        try {
+          final batch = _firestore.batch();
+          for (final f in missingFields) {
+            final docRef = _firestore.collection('form_fields').doc(f.id);
+            batch.set(docRef, {
+              ...f.toMap(),
+              'createdAt': FieldValue.serverTimestamp(),
+            });
+          }
+          await batch.commit();
+        } catch (_) {
+          // Ignore if current user lacks write permissions; local fallback is still returned.
+        } finally {
+          _isAutoSeeding = false;
+        }
+      });
+    }
+
+    return [...existing, ...missingFields];
+  }
+
   Future<void> seedInitialDataIfEmpty() async {
-    final fields = await _firestore.collection('form_fields').limit(1).get();
-    if (fields.docs.isNotEmpty) return; // Already seeded
+    final fields = await _firestore.collection('form_fields').get();
+    if (fields.docs.isNotEmpty) {
+      final existing = fields.docs.map((doc) => FormFieldModel.fromFirestore(doc)).toList();
+      final existingTypes = existing.map((f) => f.formType).toSet();
+      final missingFields = _buildDefaultFormFields()
+          .where((f) => !existingTypes.contains(f.formType))
+          .toList();
+      if (missingFields.isNotEmpty) {
+        final batch = _firestore.batch();
+        for (final f in missingFields) {
+          final docRef = _firestore.collection('form_fields').doc(f.id);
+          batch.set(docRef, {
+            ...f.toMap(),
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+        }
+        await batch.commit();
+      }
+      return;
+    }
 
     final batch = _firestore.batch();
 
@@ -428,8 +483,21 @@ class FirestoreService {
       });
     }
 
-    // 2. Default Form Fields (Weekly, Termly, Annually, Special)
-    final defaultFields = [
+    // 2. Default Form Fields
+    final defaultFields = _buildDefaultFormFields();
+    for (var f in defaultFields) {
+      final docRef = _firestore.collection('form_fields').doc(f.id);
+      batch.set(docRef, {
+        ...f.toMap(),
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    }
+
+    await batch.commit();
+  }
+
+  List<FormFieldModel> _buildDefaultFormFields() {
+    return [
       // Weekly
       FormFieldModel(
         id: 'field_w_1',
@@ -579,14 +647,98 @@ class FirestoreService {
         fieldOrder: 3,
       ),
 
-      // KRC Weekly
+      // KRC Library Weekly
+      FormFieldModel(
+        id: 'field_krc_lib_w_1',
+        formType: FormType.krcLibraryWeekly,
+        label: 'KRC Library Weekly Attendance',
+        fieldType: CustomFieldType.number,
+        required: true,
+        placeholder: 'Total library visitors this week',
+        fieldOrder: 1,
+        minValue: 0,
+      ),
+      FormFieldModel(
+        id: 'field_krc_lib_w_2',
+        formType: FormType.krcLibraryWeekly,
+        label: 'Books Borrowed / Read',
+        fieldType: CustomFieldType.number,
+        required: false,
+        placeholder: 'Total books borrowed or read',
+        fieldOrder: 2,
+        minValue: 0,
+      ),
+      FormFieldModel(
+        id: 'field_krc_lib_w_3',
+        formType: FormType.krcLibraryWeekly,
+        label: 'KRC Library Weekly Observations',
+        fieldType: CustomFieldType.textarea,
+        required: false,
+        placeholder: 'Weekly library notes, events, or resource needs...',
+        fieldOrder: 3,
+      ),
+
+      // KRC Holiday Weekly
+      FormFieldModel(
+        id: 'field_krc_hol_w_1',
+        formType: FormType.krcHolidayWeekly,
+        label: 'KRC Holiday Program Weekly Attendance',
+        fieldType: CustomFieldType.number,
+        required: true,
+        placeholder: 'Total participants this week',
+        fieldOrder: 1,
+        minValue: 0,
+      ),
+      FormFieldModel(
+        id: 'field_krc_hol_w_2',
+        formType: FormType.krcHolidayWeekly,
+        label: 'KRC Holiday Weekly Activities & Observations',
+        fieldType: CustomFieldType.textarea,
+        required: false,
+        placeholder: 'Summary of holiday activities and observations...',
+        fieldOrder: 2,
+      ),
+
+      // KRC IT Classes Weekly
+      FormFieldModel(
+        id: 'field_krc_it_w_1',
+        formType: FormType.krcItClassesWeekly,
+        label: 'KRC IT Classes Weekly Attendance',
+        fieldType: CustomFieldType.number,
+        required: true,
+        placeholder: 'Total learners attending IT classes this week',
+        fieldOrder: 1,
+        minValue: 0,
+      ),
+      FormFieldModel(
+        id: 'field_krc_it_w_2',
+        formType: FormType.krcItClassesWeekly,
+        label: 'Computer Lab Stations Occupancy',
+        fieldType: CustomFieldType.percentage,
+        required: false,
+        placeholder: 'Station utilization percentage',
+        fieldOrder: 2,
+        minValue: 0,
+        maxValue: 100,
+      ),
+      FormFieldModel(
+        id: 'field_krc_it_w_3',
+        formType: FormType.krcItClassesWeekly,
+        label: 'KRC IT Classes Weekly Observations',
+        fieldType: CustomFieldType.textarea,
+        required: false,
+        placeholder: 'Topics covered, hardware issues, or learner progress...',
+        fieldOrder: 3,
+      ),
+
+      // Kidogo Weekly
       FormFieldModel(
         id: 'field_krc_w_1',
         formType: FormType.krcWeekly,
-        label: 'KRC Resource Centre Weekly Attendance',
+        label: 'Kidogo Weekly Attendance',
         fieldType: CustomFieldType.number,
         required: true,
-        placeholder: 'Total visitors to Kangemi Centre this week',
+        placeholder: 'Total attendance this week',
         fieldOrder: 1,
         minValue: 0,
       ),
@@ -604,18 +756,18 @@ class FirestoreService {
       FormFieldModel(
         id: 'field_krc_w_3',
         formType: FormType.krcWeekly,
-        label: 'KRC Weekly Field Observations',
+        label: 'Kidogo Weekly Field Observations',
         fieldType: CustomFieldType.textarea,
         required: false,
         placeholder: 'Weekly notes, incidents, or resource needs...',
         fieldOrder: 3,
       ),
 
-      // KRC Termly
+      // Kidogo Termly
       FormFieldModel(
         id: 'field_krc_t_1',
         formType: FormType.krcTermly,
-        label: 'KRC Termly Active Learners',
+        label: 'Kidogo Termly Active Learners',
         fieldType: CustomFieldType.number,
         required: true,
         placeholder: 'Unique students utilizing centre this term',
@@ -636,14 +788,14 @@ class FirestoreService {
       FormFieldModel(
         id: 'field_krc_t_3',
         formType: FormType.krcTermly,
-        label: 'KRC Termly Strategic Evaluation',
+        label: 'Kidogo Termly Strategic Evaluation',
         fieldType: CustomFieldType.textarea,
         required: true,
         placeholder: 'Summary of term outcomes and community feedback...',
         fieldOrder: 3,
       ),
 
-      // KRC Annually
+      // Kidogo Annually
       FormFieldModel(
         id: 'field_krc_a_1',
         formType: FormType.krcAnnually,
@@ -750,15 +902,5 @@ class FirestoreService {
         fieldOrder: 2,
       ),
     ];
-
-    for (var f in defaultFields) {
-      final docRef = _firestore.collection('form_fields').doc(f.id);
-      batch.set(docRef, {
-        ...f.toMap(),
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-    }
-
-    await batch.commit();
   }
 }

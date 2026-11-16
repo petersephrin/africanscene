@@ -9,6 +9,9 @@ enum FormType {
   termly,
   annually,
   special,
+  krcLibraryWeekly,
+  krcHolidayWeekly,
+  krcItClassesWeekly,
   krcWeekly,
   krcTermly,
   krcAnnually,
@@ -24,17 +27,38 @@ enum FormType {
         return FormType.termly;
       case 'annually':
         return FormType.annually;
+      case 'krc_library_weekly':
+      case 'krclibraryweekly':
+      case 'krc library weekly':
+        return FormType.krcLibraryWeekly;
+      case 'krc_holiday_weekly':
+      case 'krcholidayweekly':
+      case 'krc holiday weekly':
+        return FormType.krcHolidayWeekly;
+      case 'krc_it_classes_weekly':
+      case 'krcitclassesweekly':
+      case 'krc it classes weekly':
+        return FormType.krcItClassesWeekly;
       case 'krc_weekly':
       case 'krcweekly':
       case 'krc weekly':
+      case 'kidogo_weekly':
+      case 'kidogoweekly':
+      case 'kidogo weekly':
         return FormType.krcWeekly;
       case 'krc_termly':
       case 'krctermly':
       case 'krc termly':
+      case 'kidogo_termly':
+      case 'kidogotermly':
+      case 'kidogo termly':
         return FormType.krcTermly;
       case 'krc_annually':
       case 'krcannually':
       case 'krc annually':
+      case 'kidogo_annually':
+      case 'kidogoannually':
+      case 'kidogo annually':
         return FormType.krcAnnually;
       case 'rec_weekly':
       case 'recweekly':
@@ -64,6 +88,12 @@ enum FormType {
         return 'annually';
       case FormType.special:
         return 'special';
+      case FormType.krcLibraryWeekly:
+        return 'krc_library_weekly';
+      case FormType.krcHolidayWeekly:
+        return 'krc_holiday_weekly';
+      case FormType.krcItClassesWeekly:
+        return 'krc_it_classes_weekly';
       case FormType.krcWeekly:
         return 'krc_weekly';
       case FormType.krcTermly:
@@ -89,12 +119,18 @@ enum FormType {
         return 'Annually';
       case FormType.special:
         return 'Special';
+      case FormType.krcLibraryWeekly:
+        return 'KRC Library Weekly';
+      case FormType.krcHolidayWeekly:
+        return 'KRC Holiday Weekly';
+      case FormType.krcItClassesWeekly:
+        return 'KRC IT Classes Weekly';
       case FormType.krcWeekly:
-        return 'KRC Weekly';
+        return 'Kidogo Weekly';
       case FormType.krcTermly:
-        return 'KRC Termly';
+        return 'Kidogo Termly';
       case FormType.krcAnnually:
-        return 'KRC Annually';
+        return 'Kidogo Annually';
       case FormType.recWeekly:
         return 'REC Weekly';
       case FormType.recTermly:
@@ -114,12 +150,18 @@ enum FormType {
         return 'Annual research findings';
       case FormType.special:
         return 'Special events & notes';
+      case FormType.krcLibraryWeekly:
+        return 'KRC library weekly records';
+      case FormType.krcHolidayWeekly:
+        return 'KRC holiday program weekly records';
+      case FormType.krcItClassesWeekly:
+        return 'KRC IT classes weekly records';
       case FormType.krcWeekly:
-        return 'Kangemi weekly observations';
+        return 'Kidogo weekly observations';
       case FormType.krcTermly:
-        return 'Kangemi end of term summaries';
+        return 'Kidogo end of term summaries';
       case FormType.krcAnnually:
-        return 'Kangemi annual findings';
+        return 'Kidogo annual findings';
       case FormType.recWeekly:
         return 'Raila weekly observations';
       case FormType.recTermly:
@@ -139,6 +181,12 @@ enum FormType {
         return Icons.school_outlined;
       case FormType.special:
         return Icons.star_outline;
+      case FormType.krcLibraryWeekly:
+        return Icons.local_library_outlined;
+      case FormType.krcHolidayWeekly:
+        return Icons.wb_sunny_outlined;
+      case FormType.krcItClassesWeekly:
+        return Icons.computer_outlined;
       case FormType.krcWeekly:
         return Icons.calendar_month_outlined;
       case FormType.krcTermly:
@@ -164,6 +212,12 @@ enum FormType {
         return const Color(0xFF8B5CF6);
       case FormType.special:
         return const Color(0xFFF59E0B);
+      case FormType.krcLibraryWeekly:
+        return const Color(0xFF14B8A6);
+      case FormType.krcHolidayWeekly:
+        return const Color(0xFF0EA5E9);
+      case FormType.krcItClassesWeekly:
+        return const Color(0xFF3B82F6);
       case FormType.krcWeekly:
         return const Color(0xFF10B981);
       case FormType.krcTermly:
@@ -180,6 +234,9 @@ enum FormType {
   }
 
   bool get isKrc =>
+      this == FormType.krcLibraryWeekly ||
+      this == FormType.krcHolidayWeekly ||
+      this == FormType.krcItClassesWeekly ||
       this == FormType.krcWeekly ||
       this == FormType.krcTermly ||
       this == FormType.krcAnnually;
@@ -189,16 +246,22 @@ enum FormType {
       this == FormType.recTermly ||
       this == FormType.recAnnually;
 
+  bool get isStandard =>
+      this == FormType.weekly ||
+      this == FormType.termly ||
+      this == FormType.annually;
+
   bool get isSchoolSpecific => isKrc || isRec;
 
   /// Check if this form type is visible given the active school
   bool isVisibleForSchool(SchoolModel? school) {
     if (isKrc) return school?.isKrc == true;
     if (isRec) return school?.isRec == true;
-    return true; // Standard types visible to everyone
+    if (isStandard) return school == null || (!school.isKrc && !school.isRec);
+    return true; // Special is visible to everyone
   }
 
-  /// Get list of visible form types for a researcher or school context
+  /// Get list of visible form types for a researcher/teacher or school context
   static List<FormType> getVisibleTypes({
     SchoolModel? school,
     UserModel? user,
@@ -209,59 +272,74 @@ enum FormType {
       return FormType.values;
     }
 
-    final list = <FormType>[
+    const krcTypes = <FormType>[
+      FormType.krcLibraryWeekly,
+      FormType.krcHolidayWeekly,
+      FormType.krcItClassesWeekly,
+      FormType.krcWeekly,
+      FormType.krcTermly,
+      FormType.krcAnnually,
+      FormType.special,
+    ];
+
+    const recTypes = <FormType>[
+      FormType.recWeekly,
+      FormType.recTermly,
+      FormType.recAnnually,
+      FormType.special,
+    ];
+
+    const otherSchoolTypes = <FormType>[
       FormType.weekly,
       FormType.termly,
       FormType.annually,
       FormType.special,
     ];
 
-    final userCanSeeKrc = user == null ||
-        user.schoolIds.isEmpty ||
-        user.isAffiliatedWithKrc(allSchools);
-    final userCanSeeRec = user == null ||
-        user.schoolIds.isEmpty ||
-        user.isAffiliatedWithRec(allSchools);
+    final knownSchools = <SchoolModel>[
+      ?school,
+      ...allSchools,
+    ];
+
+    final isKrcUser = user != null && user.isAffiliatedWithKrc(knownSchools);
+    final isRecUser = user != null && user.isAffiliatedWithRec(knownSchools);
 
     if (school != null) {
-      if (school.isKrc && userCanSeeKrc) {
-        list.addAll([
-          FormType.krcWeekly,
-          FormType.krcTermly,
-          FormType.krcAnnually,
-        ]);
-        return list;
+      if (school.isKrc && (user == null || isKrcUser)) {
+        return List<FormType>.from(krcTypes);
       }
-      if (school.isRec && userCanSeeRec) {
-        list.addAll([
-          FormType.recWeekly,
-          FormType.recTermly,
-          FormType.recAnnually,
-        ]);
-        return list;
+      if (school.isRec && (user == null || isRecUser)) {
+        return List<FormType>.from(recTypes);
       }
-      return list;
-    }
-
-    // If no specific school selected, show whatever user is affiliated with
-    if (user != null) {
-      if (user.isAffiliatedWithKrc(allSchools)) {
-        list.addAll([
-          FormType.krcWeekly,
-          FormType.krcTermly,
-          FormType.krcAnnually,
-        ]);
-      }
-      if (user.isAffiliatedWithRec(allSchools)) {
-        list.addAll([
-          FormType.recWeekly,
-          FormType.recTermly,
-          FormType.recAnnually,
-        ]);
+      if (!school.isKrc &&
+          !school.isRec &&
+          (user == null || user.schoolIds.contains(school.id))) {
+        return List<FormType>.from(otherSchoolTypes);
       }
     }
 
-    return list;
+    if (isKrcUser && !isRecUser) {
+      return List<FormType>.from(krcTypes);
+    }
+    if (isRecUser && !isKrcUser) {
+      return List<FormType>.from(recTypes);
+    }
+    if (isKrcUser && isRecUser) {
+      return <FormType>[
+        FormType.krcLibraryWeekly,
+        FormType.krcHolidayWeekly,
+        FormType.krcItClassesWeekly,
+        FormType.krcWeekly,
+        FormType.krcTermly,
+        FormType.krcAnnually,
+        FormType.recWeekly,
+        FormType.recTermly,
+        FormType.recAnnually,
+        FormType.special,
+      ];
+    }
+
+    return List<FormType>.from(otherSchoolTypes);
   }
 }
 

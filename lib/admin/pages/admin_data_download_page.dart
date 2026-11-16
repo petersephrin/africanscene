@@ -18,6 +18,9 @@ enum ExportTarget {
   recordsTermly,
   recordsAnnually,
   recordsSpecial,
+  recordsKrcLibraryWeekly,
+  recordsKrcHolidayWeekly,
+  recordsKrcItClassesWeekly,
   recordsKrcWeekly,
   recordsKrcTermly,
   recordsKrcAnnually,
@@ -114,6 +117,9 @@ class _AdminDataDownloadPageState extends State<AdminDataDownloadPage> {
         case ExportTarget.recordsTermly:
         case ExportTarget.recordsAnnually:
         case ExportTarget.recordsSpecial:
+        case ExportTarget.recordsKrcLibraryWeekly:
+        case ExportTarget.recordsKrcHolidayWeekly:
+        case ExportTarget.recordsKrcItClassesWeekly:
         case ExportTarget.recordsKrcWeekly:
         case ExportTarget.recordsKrcTermly:
         case ExportTarget.recordsKrcAnnually:
@@ -125,6 +131,9 @@ class _AdminDataDownloadPageState extends State<AdminDataDownloadPage> {
           if (_selectedTarget == ExportTarget.recordsTermly) filterType = FormType.termly;
           if (_selectedTarget == ExportTarget.recordsAnnually) filterType = FormType.annually;
           if (_selectedTarget == ExportTarget.recordsSpecial) filterType = FormType.special;
+          if (_selectedTarget == ExportTarget.recordsKrcLibraryWeekly) filterType = FormType.krcLibraryWeekly;
+          if (_selectedTarget == ExportTarget.recordsKrcHolidayWeekly) filterType = FormType.krcHolidayWeekly;
+          if (_selectedTarget == ExportTarget.recordsKrcItClassesWeekly) filterType = FormType.krcItClassesWeekly;
           if (_selectedTarget == ExportTarget.recordsKrcWeekly) filterType = FormType.krcWeekly;
           if (_selectedTarget == ExportTarget.recordsKrcTermly) filterType = FormType.krcTermly;
           if (_selectedTarget == ExportTarget.recordsKrcAnnually) filterType = FormType.krcAnnually;
@@ -257,9 +266,12 @@ class _AdminDataDownloadPageState extends State<AdminDataDownloadPage> {
                 _buildTargetCard(ExportTarget.recordsTermly, 'Termly Records', Icons.menu_book_outlined),
                 _buildTargetCard(ExportTarget.recordsAnnually, 'Annual Records', Icons.school_outlined),
                 _buildTargetCard(ExportTarget.recordsSpecial, 'Special Records', Icons.star_outline),
-                _buildTargetCard(ExportTarget.recordsKrcWeekly, 'KRC Weekly', Icons.calendar_month_outlined),
-                _buildTargetCard(ExportTarget.recordsKrcTermly, 'KRC Termly', Icons.menu_book_rounded),
-                _buildTargetCard(ExportTarget.recordsKrcAnnually, 'KRC Annually', Icons.account_balance_outlined),
+                _buildTargetCard(ExportTarget.recordsKrcLibraryWeekly, 'KRC Library Weekly', Icons.local_library_outlined),
+                _buildTargetCard(ExportTarget.recordsKrcHolidayWeekly, 'KRC Holiday Weekly', Icons.wb_sunny_outlined),
+                _buildTargetCard(ExportTarget.recordsKrcItClassesWeekly, 'KRC IT Classes Weekly', Icons.computer_outlined),
+                _buildTargetCard(ExportTarget.recordsKrcWeekly, 'Kidogo Weekly', Icons.calendar_month_outlined),
+                _buildTargetCard(ExportTarget.recordsKrcTermly, 'Kidogo Termly', Icons.menu_book_rounded),
+                _buildTargetCard(ExportTarget.recordsKrcAnnually, 'Kidogo Annually', Icons.account_balance_outlined),
                 _buildTargetCard(ExportTarget.recordsRecWeekly, 'REC Weekly', Icons.date_range_outlined),
                 _buildTargetCard(ExportTarget.recordsRecTermly, 'REC Termly', Icons.library_books_outlined),
                 _buildTargetCard(ExportTarget.recordsRecAnnually, 'REC Annually', Icons.domain_outlined),
